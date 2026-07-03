@@ -225,15 +225,12 @@ export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], re
 
             {aiRecommendations ? (
               <ul className="space-y-3 flex-1">
-                {aiRecommendations
-                  .split(/(?<=[.!?])\s+/)
-                  .filter(s => s.trim().length > 0)
-                  .map((sentence, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0 mt-1.5" />
-                      <p className="text-xs text-gray-600 leading-relaxed">{sentence.trim()}</p>
-                    </li>
-                  ))}
+                {parseRecommendations(aiRecommendations).map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0 mt-1.5" />
+                    <p className="text-xs text-gray-600 leading-relaxed">{item}</p>
+                  </li>
+                ))}
               </ul>
             ) : (
               <p className="text-xs text-gray-400 flex-1">{t('dash.aiSoon')}</p>
@@ -494,6 +491,18 @@ function NoRecentObsCard({ students }: { students: NoRecentObsItem[] }) {
       )}
     </div>
   )
+}
+
+// Рекомендации ИИ приходят нумерованным списком «1. … 2. …» (через перевод строки
+// или просто пробел). Разбиваем по номерам пунктов, а НЕ по концу предложения —
+// иначе точка после «1» ломала список на «1.» + текст отдельными пунктами.
+function parseRecommendations(text: string): string[] {
+  const raw = text.trim()
+  const numbered = raw.match(/\d+\.\s+[\s\S]*?(?=\s+\d+\.\s|$)/g)
+  const items = numbered && numbered.length > 0
+    ? numbered.map(s => s.replace(/^\s*\d+\.\s*/, '').trim())
+    : raw.split(/\n+/).map(s => s.replace(/^[\s•*-]*\d*\.?\s*/, '').trim())
+  return items.filter(s => s.length > 0)
 }
 
 function tInitials(name: string) {
