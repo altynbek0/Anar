@@ -129,7 +129,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="text-left text-xs text-gray-600 bg-gray-50 hover:bg-[#EFF6FF] hover:text-[#2563EB] border border-gray-100 rounded-xl px-3 py-2.5 transition-colors"
+                  className="text-left text-xs text-gray-600 bg-gray-50 hover:bg-[#F3F4F6] hover:text-[#111827] border border-gray-100 rounded-xl px-3 py-2.5 transition-colors"
                 >
                   {s}
                 </button>
@@ -142,7 +142,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
             if (m.role === 'user') {
               return (
                 <div key={i} className="flex justify-end">
-                  <div className="max-w-[85%] bg-[#2563EB] text-white rounded-2xl rounded-br-md px-4 py-2.5 text-sm whitespace-pre-wrap">
+                  <div className="max-w-[85%] bg-[#111827] text-white rounded-2xl rounded-br-md px-4 py-2.5 text-sm whitespace-pre-wrap">
                     {m.content}
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
 
       {/* Input */}
       <div className="border-t border-gray-100 p-3">
-        <div className="flex items-end gap-2 bg-gray-50 rounded-2xl px-3 py-2 border border-gray-100 focus-within:border-[#2563EB]/40 transition-colors">
+        <div className="flex items-end gap-2 bg-gray-50 rounded-2xl px-3 py-2 border border-gray-100 focus-within:border-[#111827]/40 transition-colors">
           <textarea
             ref={taRef}
             value={input}
@@ -189,7 +189,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
           <button
             onClick={() => send(input)}
             disabled={busy || !input.trim()}
-            className="w-8 h-8 rounded-xl bg-[#2563EB] text-white flex items-center justify-center flex-shrink-0 disabled:opacity-40 hover:bg-[#1D4ED8] transition-colors"
+            className="w-8 h-8 rounded-xl bg-[#111827] text-white flex items-center justify-center flex-shrink-0 disabled:opacity-40 hover:bg-[#030712] transition-colors"
           >
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
