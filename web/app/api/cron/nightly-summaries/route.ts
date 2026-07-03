@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { updateSummariesFromObservations, type AiInsightRow } from '@/lib/ai/student-summaries'
+import { updateSummariesFromObservations, regenerateOverview, type AiInsightRow } from '@/lib/ai/student-summaries'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -44,6 +44,12 @@ export async function GET(req: Request) {
 
       const updates = await updateSummariesFromObservations(fullName, (current ?? {}) as AiInsightRow, texts)
       if (!updates) return
+
+      // Пересобираем «Обзор» из актуальных разделов (сам он ежедневными наблюдениями
+      // почти не задевается и устаревает). Обзор в историю версий не пишем — см. фильтр ниже.
+      const merged = { ...(current ?? {}), ...updates } as AiInsightRow
+      const newOverview = await regenerateOverview(fullName, merged)
+      if (newOverview) updates.overview = newOverview
 
       await db.from('ai_insights').upsert(
         { student_id: studentId, school_id: schoolId, ...updates },

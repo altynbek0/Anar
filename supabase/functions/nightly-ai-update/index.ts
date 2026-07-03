@@ -33,6 +33,36 @@ const SECTION_DEFINITIONS = `Определения разделов (строг
 
 Если информация раздела не касается — НЕ меняй этот раздел.`
 
+// Пересобирает «Обзор» как общий портрет из актуальных 5 разделов — он почти не
+// задевается ежедневными наблюдениями (они уходят в профильные разделы) и устаревает.
+async function regenerateOverview(fullName: string, sections: Partial<Record<Section, string>>): Promise<string | null> {
+  const body = (['interests', 'performance', 'activity', 'achievements', 'psychology'] as Section[])
+    .map(s => `${SECTION_RU[s]}: ${sections[s] ?? NO_DATA}`)
+    .join('\n')
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      messages: [{
+        role: 'user',
+        content: `Ты опытный классный руководитель. На основе актуальных разделов профиля составь «Обзор» — общий портрет ученика: ключевые черты и краткое резюме на 3-4 предложения. Дай ОБОБЩЁННЫЙ портрет, не дублируй детали из разделов дословно. Пиши от третьего лица, на русском. Если данных мало — напиши ровно: "${NO_DATA}"
+
+Ученик: ${fullName}
+
+Актуальные разделы:
+${body}
+
+Ответь ТОЛЬКО текстом обзора — без JSON, без markdown, без префиксов.`,
+      }],
+    })
+    const text = (response.content[0] as { type: string; text: string }).text.trim()
+    return text || null
+  } catch (e) {
+    console.error(`[ai] nightly regenerateOverview: сбой для ${fullName}:`, e)
+    return null
+  }
+}
+
 Deno.serve(async (req) => {
   // Allow only POST from Supabase cron (or authorized caller)
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
@@ -89,14 +119,16 @@ Deno.serve(async (req) => {
 
         const response = await anthropic.messages.create({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 500,
+          max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `Ты опытный классный руководитель. Тебе дали текущие AI сводки по ученику и новые наблюдения учителей за сегодня. Обнови только те разделы которые затрагивают эти наблюдения. Важно: сохрани все важные детали из текущей сводки, не теряй прошлую информацию — только дополняй и уточняй. Пиши на русском, 2-3 предложения на раздел.
+            content: `Ты опытный классный руководитель. Тебе дали текущие AI сводки по ученику и новые наблюдения учителей за сегодня. Обнови только те разделы, которых явно касаются новые наблюдения.
+
+Для каждого такого раздела ПЕРЕПИШИ сводку заново как краткую актуальную выжимку на 3-4 предложения, объединив важное из текущей сводки с новыми наблюдениями. Сохраняй значимое, но убирай устаревшее и второстепенное — раздел должен оставаться компактным и НЕ расти со временем. Это живая сводка, а не журнал: синтезируй цельный обновлённый текст, не приклеивай новое в хвост. Пиши на русском, от третьего лица.
 
 Ученик: ${fullName}
 
-Текущие сводки (сохрани важное):
+Текущие сводки:
 ${currentText}
 
 Новые наблюдения за сегодня:
@@ -106,13 +138,20 @@ ${SECTION_DEFINITIONS}
 Обновляй раздел только если новое наблюдение явно соответствует его определению.
 
 Ответь ТОЛЬКО валидным JSON без markdown, только с обновлёнными разделами:
-{"section_key":"обновлённая сводка"}`,
+{"section_key":"цельная обновлённая выжимка (3-4 предложения)"}`,
           }],
         })
 
-        const text = (response.content[0] as { type: string; text: string }).text.trim()
-        const json = text.replace(/^```json\n?/, '').replace(/\n?```$/, '')
-        const updates = JSON.parse(json) as Partial<Record<Section, string>>
+        let updates: Partial<Record<Section, string>>
+        try {
+          const text = (response.content[0] as { type: string; text: string }).text.trim()
+          const json = text.replace(/^```json\n?/, '').replace(/\n?```$/, '')
+          updates = JSON.parse(json) as Partial<Record<Section, string>>
+        } catch (e) {
+          // Обычно обрыв по max_tokens → невалидный JSON. Логируем, а не теряем молча.
+          console.error(`[ai] nightly: не удалось разобрать ответ для ${fullName}:`, e)
+          return
+        }
 
         // Map section keys → ai_insights columns; only keep recognised sections
         const colUpdates: Record<string, string> = {}
@@ -123,6 +162,11 @@ ${SECTION_DEFINITIONS}
         }
 
         if (Object.keys(colUpdates).length > 0) {
+          // Пересобираем «Обзор» из актуальных разделов (в историю версий он не пишется — см. фильтр ниже).
+          const mergedSections = { ...current, ...updates } as Partial<Record<Section, string>>
+          const newOverview = await regenerateOverview(fullName, mergedSections)
+          if (newOverview) colUpdates[COL_BY_SECTION.overview] = newOverview
+
           await supabase
             .from('ai_insights')
             .upsert(
