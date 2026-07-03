@@ -4,7 +4,8 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid,
 } from 'recharts'
-import { Sparkles, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -205,9 +206,7 @@ export function AnalyticsClient({
       {/* ── AI school report ── */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+          <Image src="/icon.png" alt="Stride" width={32} height={32} className="w-8 h-8 rounded-xl object-cover flex-shrink-0" />
           <div>
             <h2 className="text-base font-bold text-gray-900">ИИ-анализ школы</h2>
             {aiReport

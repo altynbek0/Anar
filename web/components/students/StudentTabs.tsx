@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { Sparkles, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { ReactionBar } from '@/components/observations/ReactionBar'
 const NO_DATA = 'Данных пока недостаточно.'
 
@@ -117,9 +118,7 @@ function AiBlock({ summary }: { summary?: { content: string; updated_at: string 
   return (
     <div className="bg-blue-50/50 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-5 h-5 bg-blue-600 rounded-md flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-3 h-3 text-white" />
-        </div>
+        <Image src="/icon.png" alt="Stride" width={20} height={20} className="w-5 h-5 rounded-md object-cover flex-shrink-0" />
         <span className="text-sm font-semibold text-gray-900">AI сводка</span>
         {dateLabel && <span className="text-xs text-gray-400 ml-auto">{dateLabel}</span>}
       </div>
