@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { MobileShell } from './MobileShell'
+import { AssistantWidget } from '@/components/assistant/AssistantWidget'
 import { getLocale } from '@/lib/i18n/server'
 import { I18nProvider } from '@/lib/i18n/I18nProvider'
 
@@ -42,6 +43,7 @@ export async function DashboardShell({ children }: { children: React.ReactNode }
       >
         {children}
       </MobileShell>
+      {isAdmin && <AssistantWidget />}
     </I18nProvider>
   )
 }

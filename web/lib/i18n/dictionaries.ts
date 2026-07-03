@@ -9,6 +9,7 @@ const ru: Dict = {
   'nav.staff': 'Сотрудники',
   'nav.book': 'Книга ученика',
   'nav.analytics': 'Аналитика школы',
+  'nav.assistant': 'AI-ассистент',
   'nav.addObservation': 'Добавить наблюдение',
   'common.logout': 'Выйти',
 
@@ -172,6 +173,7 @@ const en: Dict = {
   'nav.staff': 'Staff',
   'nav.book': 'Student Book',
   'nav.analytics': 'School Analytics',
+  'nav.assistant': 'AI Assistant',
   'nav.addObservation': 'Add Observation',
   'common.logout': 'Log out',
 

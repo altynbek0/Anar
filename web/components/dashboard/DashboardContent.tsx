@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Users, AlertTriangle, Eye, TrendingUp, TrendingDown, Sparkles, Trash2, ShieldAlert } from 'lucide-react'
+import Image from 'next/image'
+import { Users, AlertTriangle, Eye, TrendingUp, TrendingDown, Trash2, ShieldAlert } from 'lucide-react'
 import { deleteObservation, dismissAlert } from '@/app/(dashboard)/observations/actions'
 import { SchoolYearBadge } from './SchoolYearBadge'
 import { ReactionBar, type ReactionItem } from '@/components/observations/ReactionBar'
@@ -217,9 +218,7 @@ export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], re
         {canViewAnalytics && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-              </div>
+              <Image src="/icon.png" alt="Stride" width={24} height={24} className="w-6 h-6 rounded-lg object-cover flex-shrink-0" />
               <h2 className="font-semibold text-gray-900 text-sm">{t('dash.aiMonth')}</h2>
             </div>
 
