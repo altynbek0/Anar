@@ -53,7 +53,12 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
         body: JSON.stringify({ messages: history }),
       })
       if (!res.ok || !res.body) {
-        const errText = res.status === 403 ? 'Нет доступа к ассистенту.' : 'Не удалось получить ответ.'
+        let errText = 'Не удалось получить ответ.'
+        if (res.status === 403) errText = 'Нет доступа к ассистенту.'
+        else if (res.status === 429) {
+          const j = await res.json().catch(() => null)
+          errText = j?.message ?? 'Достигнут дневной лимит запросов для вашей школы.'
+        }
         setMessages(m => appendToLast(m, errText))
         return
       }

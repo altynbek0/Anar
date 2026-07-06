@@ -42,6 +42,21 @@ export async function POST(req: Request) {
   const clientMessages: ClientMessage[] = Array.isArray(body.messages) ? body.messages : []
   if (clientMessages.length === 0) return new Response('No messages', { status: 400 })
 
+  // Дневной лимит запросов на ШКОЛУ (общий пул всей администрации), сброс по дню (Бишкек).
+  // Атомарно резервируем слот в БД, чтобы разные админы не гонялись за счётчиком.
+  const DAILY_LIMIT = 5
+  const { data: usage } = await supabase.rpc('increment_assistant_usage', {
+    p_school_id: profile.school_id,
+    p_limit: DAILY_LIMIT,
+  })
+  const quota = Array.isArray(usage) ? usage[0] : usage
+  if (!quota?.allowed) {
+    return Response.json(
+      { error: 'limit', message: `Достигнут дневной лимит запросов для вашей школы (${DAILY_LIMIT} в день). Лимит общий на всю администрацию и обновится завтра.` },
+      { status: 429 },
+    )
+  }
+
   const ctx: ToolContext = { supabase, schoolId: profile.school_id }
 
   const messages: Anthropic.MessageParam[] = clientMessages
