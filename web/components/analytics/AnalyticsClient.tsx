@@ -164,7 +164,7 @@ export function AnalyticsClient({
         </div>
 
         {/* Цели родителей */}
-        {parentGoals.length > 0 && (() => {
+        {(() => {
         const GOAL_COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EF4444','#06B6D4','#EC4899','#6366F1','#14B8A6','#F97316','#84CC16','#A855F7']
         const goalsTotal = parentGoals.reduce((s, g) => s + g.value, 0)
         const goalsWithColor = parentGoals.map((g, i) => ({ ...g, color: GOAL_COLORS[i % GOAL_COLORS.length] }))
@@ -174,6 +174,11 @@ export function AnalyticsClient({
               <h3 className="text-sm font-semibold text-gray-900">Цели родителей</h3>
               <span className="text-xs text-gray-400">{goalsTotal} ответов</span>
             </div>
+            {parentGoals.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-10">
+                Нет данных: цели родителей не указаны в профилях учеников
+              </p>
+            ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="flex-shrink-0">
                 <PieChart width={180} height={180}>
@@ -198,6 +203,7 @@ export function AnalyticsClient({
                 ))}
               </div>
             </div>
+            )}
           </div>
         )
       })()}
