@@ -12,6 +12,8 @@ const ru: Dict = {
   'nav.assistant': 'AI-ассистент',
   'nav.addObservation': 'Добавить наблюдение',
   'common.logout': 'Выйти',
+  'theme.light': 'Светлая',
+  'theme.dark': 'Тёмная',
 
   // roles
   'role.admin': 'Администрация',
@@ -176,6 +178,8 @@ const en: Dict = {
   'nav.assistant': 'AI Assistant',
   'nav.addObservation': 'Add Observation',
   'common.logout': 'Log out',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
 
   // roles
   'role.admin': 'Administration',

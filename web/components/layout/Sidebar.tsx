@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase/client'
 import { uploadSchoolLogo } from '@/app/actions/school'
 import { useI18n } from '@/lib/i18n/I18nProvider'
 import { LanguageToggle } from './LanguageToggle'
+import { ThemeToggle } from './ThemeToggle'
 
 type Role = 'admin' | 'deputy' | 'teacher' | 'class_teacher' | 'psychologist' | 'nurse' | 'security' | 'manager'
 
@@ -171,6 +172,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
       {/* Language + Logout */}
       <div className="px-3 py-4 border-t border-gray-100 space-y-2">
         <LanguageToggle />
+        <ThemeToggle />
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all w-full group"
