@@ -24,7 +24,7 @@ export async function DashboardShell({ children }: { children: React.ReactNode }
   const userName = profile?.full_name ?? user.email ?? ''
   const userRoleKey = profile?.role ?? ''
   const school = profile?.school as { name?: string; logo_url?: string | null } | null
-  const schoolName = school?.name ?? 'Stride'
+  const schoolName = school?.name ?? 'Anar'
   const schoolLogoUrl = school?.logo_url ?? null
   const isAdmin = ['admin', 'manager'].includes(userRoleKey)
 

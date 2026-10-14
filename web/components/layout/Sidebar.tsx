@@ -40,7 +40,7 @@ interface SidebarProps {
   isAdmin?: boolean
 }
 
-export function Sidebar({ userName = 'Пользователь', userRoleKey = '', schoolName = 'Stride', schoolLogoUrl, isAdmin = false }: SidebarProps) {
+export function Sidebar({ userName = 'Пользователь', userRoleKey = '', schoolName = 'Anar', schoolLogoUrl, isAdmin = false }: SidebarProps) {
   const { t } = useI18n()
   const visibleItems = NAV_ITEMS.filter(item =>
     !userRoleKey || item.roles.includes(userRoleKey as Role)
@@ -117,7 +117,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
           </div>
 
           <div className="min-w-0">
-            <p className="font-bold text-gray-900 text-base leading-tight group-hover/logo:text-[#2563EB] transition-colors">stride.ai</p>
+            <p className="font-bold text-gray-900 text-base leading-tight group-hover/logo:text-[#2563EB] transition-colors">Anar</p>
             <p className="text-[11px] text-gray-400 truncate leading-tight mt-0.5">{schoolName}</p>
           </div>
         </Link>

@@ -121,7 +121,7 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 }
 
-// Декоративные ленты Stride — готовая картинка с мягкой тенью (react-pdf сам тень не умеет)
+// Декоративные ленты Anar — готовая картинка с мягкой тенью (react-pdf сам тень не умеет)
 function DecoBars() {
   return <Image src="/pdf/deco-bars.png" style={styles.deco} />
 }
@@ -141,7 +141,7 @@ function CoverHeader({ data }: { data: BookData }) {
 function Header({ title }: { title: string }) {
   return (
     <View style={styles.header} fixed>
-      <Text style={styles.brand}>stride<Text style={styles.brandDot}>.ai</Text></Text>
+      <Text style={styles.brand}>Anar</Text>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>
   )
@@ -150,7 +150,7 @@ function Header({ title }: { title: string }) {
 function Footer() {
   return (
     <View style={styles.footer} fixed>
-      <Text style={styles.footerText}>stride.ai · Платформа аналитики ученика</Text>
+      <Text style={styles.footerText}>Anar · Платформа аналитики ученика</Text>
       <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
     </View>
   )
@@ -179,7 +179,7 @@ export function StudentBookDocument({ data }: { data: BookData }) {
   const maxCount = Math.max(1, ...data.categoryCounts.map(c => c.count))
 
   return (
-    <Document title={`Книга ученика — ${data.fullName}`} author="stride.ai">
+    <Document title={`Книга ученика — ${data.fullName}`} author="Anar">
       {/* ── Обложка ── */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.leftEdge} fixed />

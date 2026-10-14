@@ -206,7 +206,7 @@ export function AnalyticsClient({
       {/* ── AI school report ── */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <Image src="/icon.png" alt="Stride" width={32} height={32} className="w-8 h-8 rounded-xl object-cover flex-shrink-0" />
+          <Image src="/icon.png" alt="Anar" width={32} height={32} className="w-8 h-8 rounded-xl object-cover flex-shrink-0" />
           <div>
             <h2 className="text-base font-bold text-gray-900">ИИ-анализ школы</h2>
             {aiReport

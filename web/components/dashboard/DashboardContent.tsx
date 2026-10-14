@@ -218,7 +218,7 @@ export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], re
         {canViewAnalytics && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/icon.png" alt="Stride" width={24} height={24} className="w-6 h-6 rounded-lg object-cover flex-shrink-0" />
+              <Image src="/icon.png" alt="Anar" width={24} height={24} className="w-6 h-6 rounded-lg object-cover flex-shrink-0" />
               <h2 className="font-semibold text-gray-900 text-sm">{t('dash.aiMonth')}</h2>
             </div>
 

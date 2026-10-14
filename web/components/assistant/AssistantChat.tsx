@@ -106,7 +106,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
     <div className="h-full w-full flex flex-col bg-white overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3.5 border-b border-gray-100 flex items-center gap-2.5">
-        <Image src="/icon.png" alt="Stride" width={32} height={32} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+        <Image src="/icon.png" alt="Anar" width={32} height={32} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
         <div className="min-w-0 flex-1">
           <h1 className="text-sm font-semibold text-gray-900 truncate">AI-ассистент директора</h1>
           <p className="text-[11px] text-gray-400 truncate">Отвечает по данным вашей школы</p>
@@ -126,7 +126,7 @@ export function AssistantChat({ onClose }: { onClose?: () => void }) {
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-5 space-y-4">
         {empty ? (
           <div className="h-full flex flex-col items-center justify-center text-center px-4">
-            <Image src="/icon.png" alt="Stride" width={48} height={48} className="w-12 h-12 rounded-2xl object-cover mb-3" />
+            <Image src="/icon.png" alt="Anar" width={48} height={48} className="w-12 h-12 rounded-2xl object-cover mb-3" />
             <p className="text-sm text-gray-600 font-medium">Спросите что угодно о вашей школе</p>
             <p className="text-xs text-gray-400 mt-1 mb-5">Ученики, классы, наблюдения, зоны риска</p>
             <div className="grid sm:grid-cols-2 gap-2 w-full max-w-lg">

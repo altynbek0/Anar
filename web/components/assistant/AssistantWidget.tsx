@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { AssistantChat } from './AssistantChat'
 
-// Плавающий ассистент директора: круглая кнопка с лого Stride в правом нижнем
+// Плавающий ассистент директора: круглая кнопка с лого Anar в правом нижнем
 // углу → выезжающая справа чат-панель (в стиле Copilot). Монтируется в
 // DashboardShell только для admin/manager. Чат остаётся смонтированным, чтобы
 // переписка сохранялась между открытиями.
@@ -27,7 +27,7 @@ export function AssistantWidget() {
           open ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <Image src="/icon.png" alt="Stride" width={56} height={56} className="w-full h-full object-cover" />
+        <Image src="/icon.png" alt="Anar" width={56} height={56} className="w-full h-full object-cover" />
       </button>
 
       {/* Затемнение (только на мобиле) */}

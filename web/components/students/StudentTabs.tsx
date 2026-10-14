@@ -118,7 +118,7 @@ function AiBlock({ summary }: { summary?: { content: string; updated_at: string 
   return (
     <div className="bg-blue-50/50 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Image src="/icon.png" alt="Stride" width={20} height={20} className="w-5 h-5 rounded-md object-cover flex-shrink-0" />
+        <Image src="/icon.png" alt="Anar" width={20} height={20} className="w-5 h-5 rounded-md object-cover flex-shrink-0" />
         <span className="text-sm font-semibold text-gray-900">AI сводка</span>
         {dateLabel && <span className="text-xs text-gray-400 ml-auto">{dateLabel}</span>}
       </div>
