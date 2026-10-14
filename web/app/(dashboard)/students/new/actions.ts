@@ -6,6 +6,13 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { generateInitialSummaries, NO_DATA } from '@/lib/ai/student-summaries'
 
+// Название класса — параллель и буква («5А», «10Б», «11»). Любой другой текст в колонке
+// «Класс» (ответы анкеты, съехавшие колонки) классом не считаем, иначе в списке
+// появляются «классы» вроде «доброжелательная».
+function isClassName(name: string | undefined): name is string {
+  return !!name && /^\d{1,2}\s?[A-Za-zА-Яа-яЁё]{0,3}$/.test(name)
+}
+
 export async function addStudent(_: unknown, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -90,7 +97,7 @@ export async function importFromQuestionnaires(rows: QuestionnaireRow[]): Promis
   const db = createAdminClient()
   const schoolId = profile.school_id
 
-  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(Boolean))] as string[]
+  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(isClassName))] as string[]
   const classTypeMap: Record<string, string> = {}
   for (const r of rows) {
     if (r.class_name?.trim() && r.class_type?.trim()) classTypeMap[r.class_name.trim()] = r.class_type.trim()
@@ -277,7 +284,7 @@ export async function importStudents(rows: ImportRow[]): Promise<{ imported: num
   const schoolId = profile.school_id
 
   // Build class name → id map (fetch existing then create missing)
-  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(Boolean))] as string[]
+  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(isClassName))] as string[]
   const classMap: Record<string, string> = {}
 
   if (classNames.length > 0) {
