@@ -15,6 +15,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
 
+  // Fail-closed: без настроенного CRON_SECRET функция недоступна.
+  const cronSecret = Deno.env.get('CRON_SECRET')
+  if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret)
+    return new Response('Unauthorized', { status: 401 })
+
   try {
     const body = await req.json().catch(() => ({}))
     const now = new Date()

@@ -29,3 +29,9 @@ Thumbs.db
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# Claude Code: локальные разрешения (могут содержать команды с ключами)
+.claude/settings.local.json
+
+# Анкеты с персональными данными детей — не коммитить
+design/*.csv

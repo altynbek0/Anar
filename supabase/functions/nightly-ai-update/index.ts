@@ -67,6 +67,11 @@ Deno.serve(async (req) => {
   // Allow only POST from Supabase cron (or authorized caller)
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
 
+  // Fail-closed: без настроенного CRON_SECRET функция недоступна.
+  const cronSecret = Deno.env.get('CRON_SECRET')
+  if (!cronSecret || req.headers.get('x-cron-secret') !== cronSecret)
+    return new Response('Unauthorized', { status: 401 })
+
   try {
     // Runs nightly at 21:00 Bishkek (UTC+6) = 15:00 UTC. Pick up observations from the last 24h.
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
