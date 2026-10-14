@@ -208,6 +208,7 @@ export default async function HomePage() {
         classes={classes}
         schoolYear={schoolYear}
         isAdmin={['admin', 'manager'].includes(userRole)}
+        canViewAllObs={['admin', 'deputy'].includes(userRole)}
         canViewAnalytics={canViewAnalytics}
         classTeacherClassName={classTeacherClassName}
         currentUserId={user!.id}

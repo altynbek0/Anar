@@ -40,7 +40,7 @@ export default async function StaffPage() {
   }
 
   const ACCESS_MATRIX = [
-    { label: 'Все наблюдения',        admin: true, deputy: true, teacher: true, class_teacher: true, psychologist: true, nurse: true, security: true, manager: true },
+    { label: 'Все наблюдения',        admin: true, deputy: true, teacher: false, class_teacher: false, psychologist: false, nurse: false, security: false, manager: false },
     { label: 'Аналитика школы',       admin: true, deputy: true, teacher: false, class_teacher: false, psychologist: false, nurse: false, security: false, manager: true },
     { label: 'Профиль ученика',       admin: true, deputy: true, teacher: true, class_teacher: true, psychologist: true, nurse: true, security: true, manager: true },
     { label: 'Добавить наблюдение',   admin: true, deputy: true, teacher: true, class_teacher: true, psychologist: true, nurse: true, security: true, manager: true },

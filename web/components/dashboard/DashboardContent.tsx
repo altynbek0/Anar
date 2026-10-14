@@ -63,6 +63,7 @@ interface Props {
   classes?: Array<{ id: string; name: string }>
   schoolYear?: number
   isAdmin?: boolean
+  canViewAllObs?: boolean
   canViewAnalytics?: boolean
   classTeacherClassName?: string | null
   currentUserId?: string
@@ -75,7 +76,7 @@ interface Props {
   teacherStats?: TeacherStat[]
 }
 
-export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], recentObservations, userName, classes = [], schoolYear = 2026, isAdmin = false, canViewAnalytics = false, classTeacherClassName, currentUserId, defaultClassId = '', newStudentsMonth = 0, departedMonth = 0, newObsWeek = 0, newAlertObsWeek = 0, aiRecommendations = null, teacherStats = [] }: Props) {
+export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], recentObservations, userName, classes = [], schoolYear = 2026, isAdmin = false, canViewAllObs = false, canViewAnalytics = false, classTeacherClassName, currentUserId, defaultClassId = '', newStudentsMonth = 0, departedMonth = 0, newObsWeek = 0, newAlertObsWeek = 0, aiRecommendations = null, teacherStats = [] }: Props) {
   const { t, locale } = useI18n()
   const [classFilter, setClassFilter] = useState(defaultClassId)
   const [search, setSearch] = useState('')
@@ -167,56 +168,58 @@ export function DashboardContent({ stats, riskStudents: _r, noRecentObs = [], re
 
       {/* Middle: observations + AI */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 mb-4 sm:mb-5">
-        {/* Observations feed */}
-        <div className={`${canViewAnalytics ? 'lg:col-span-2' : 'lg:col-span-3'} bg-white rounded-2xl border border-gray-100 p-4 sm:p-5`}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-semibold text-gray-900 text-sm">{t('dash.allObs')}</h2>
-              <p className="text-xs text-gray-400">{pluralizeObs(observations.length, locale)}</p>
+        {/* Observations feed — только администрация и завуч */}
+        {canViewAllObs && (
+          <div className={`${canViewAnalytics ? 'lg:col-span-2' : 'lg:col-span-3'} bg-white rounded-2xl border border-gray-100 p-4 sm:p-5`}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-semibold text-gray-900 text-sm">{t('dash.allObs')}</h2>
+                <p className="text-xs text-gray-400">{pluralizeObs(observations.length, locale)}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mb-3">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('dash.searchName')}
+                className="flex-1 pl-3 pr-4 py-2 text-sm rounded-lg border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-100"
+              />
+              {classes.length > 0 && (
+                <select
+                  value={classFilter}
+                  onChange={(e) => setClassFilter(e.target.value)}
+                  className="flex-shrink-0 pl-2 pr-6 py-2 text-xs sm:text-sm rounded-lg border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">{t('dash.classSelect')}</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+              {filtered.length > 0 ? (
+                filtered.map((obs) => (
+                  <ObservationRow
+                    key={obs.id}
+                    obs={obs}
+                    isLastByMe={obs.id === lastOwnObsId}
+                    onDelete={handleDeleteObs}
+                    currentUserId={currentUserId}
+                  />
+                ))
+              ) : (
+                <EmptyObservations />
+              )}
             </div>
           </div>
-
-          <div className="flex gap-2 mb-3">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('dash.searchName')}
-              className="flex-1 pl-3 pr-4 py-2 text-sm rounded-lg border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-100"
-            />
-            {classes.length > 0 && (
-              <select
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="flex-shrink-0 pl-2 pr-6 py-2 text-xs sm:text-sm rounded-lg border border-gray-100 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">{t('dash.classSelect')}</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-            {filtered.length > 0 ? (
-              filtered.map((obs) => (
-                <ObservationRow
-                  key={obs.id}
-                  obs={obs}
-                  isLastByMe={obs.id === lastOwnObsId}
-                  onDelete={handleDeleteObs}
-                  currentUserId={currentUserId}
-                />
-              ))
-            ) : (
-              <EmptyObservations />
-            )}
-          </div>
-        </div>
+        )}
 
         {/* AI Insights — only for admin, deputy, manager */}
         {canViewAnalytics && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
+          <div className={`${canViewAllObs ? '' : 'lg:col-span-3 '}bg-white rounded-2xl border border-gray-100 p-5 flex flex-col`}>
             <div className="flex items-center gap-2 mb-4">
               <Image src="/icon.png" alt="Anar" width={24} height={24} className="w-6 h-6 rounded-lg object-cover flex-shrink-0" />
               <h2 className="font-semibold text-gray-900 text-sm">{t('dash.aiMonth')}</h2>
