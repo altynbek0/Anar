@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function deleteStudent(studentId: string, departureReason: string): Promise<{ error?: string }> {
@@ -99,10 +100,30 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
   if (!['admin', 'manager'].includes(profile?.role ?? ''))
     return { error: 'Нет прав для удаления класса' }
 
-  // Unassign all students from the class before deleting it
-  await supabase.from('students').update({ class_id: null }).eq('class_id', classId)
+  // Удаляем класс вместе с учениками и всеми их данными. Каскадов в БД нет, поэтому
+  // чистим зависимые таблицы по порядку; admin-клиент — RLS не пускает удалять ai_insights.
+  const db = createAdminClient()
 
-  const { error } = await supabase.from('classes').delete().eq('id', classId)
+  const { data: classStudents } = await db.from('students').select('id').eq('class_id', classId)
+  const studentIds = (classStudents ?? []).map((s) => s.id)
+
+  if (studentIds.length > 0) {
+    const { data: obs } = await db.from('observations').select('id').in('student_id', studentIds)
+    const obsIds = (obs ?? []).map((o) => o.id)
+    if (obsIds.length > 0) {
+      const { error } = await db.from('observation_reactions').delete().in('observation_id', obsIds)
+      if (error) return { error: 'Не удалось удалить класс' }
+    }
+    for (const table of ['observations', 'ai_insight_versions', 'ai_insights', 'students']) {
+      const { error } = await db.from(table).delete().in(table === 'students' ? 'id' : 'student_id', studentIds)
+      if (error) return { error: 'Не удалось удалить класс' }
+    }
+  }
+
+  // Сотрудники ссылаются на класс через users.class_id (внешний ключ без каскада)
+  await db.from('users').update({ class_id: null }).eq('class_id', classId)
+
+  const { error } = await db.from('classes').delete().eq('id', classId)
   if (error) return { error: 'Не удалось удалить класс' }
 
   revalidatePath('/students')

@@ -144,8 +144,8 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
     setLoadingId(null)
   }
 
-  async function handleDeleteClass(classId: string, name: string) {
-    if (!confirm(t('stud.confirmDeleteClass', { name }))) return
+  async function handleDeleteClass(classId: string, name: string, count: number) {
+    if (!confirm(t('stud.confirmDeleteClass', { name, count }))) return
     setLoadingId(classId)
     setError(null)
     const res = await deleteClass(classId)
@@ -252,7 +252,7 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                               <GraduationCap className="w-4 h-4" />
                             </button>
                           )}
-                          <button onClick={() => handleDeleteClass(cls.id, cls.name)} disabled={loadingId === cls.id} title={t('stud.deleteClass')} className="p-1.5 text-gray-400 hover:text-red-500 active:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                          <button onClick={() => handleDeleteClass(cls.id, cls.name, cls.students.length)} disabled={loadingId === cls.id} title={t('stud.deleteClass')} className="p-1.5 text-gray-400 hover:text-red-500 active:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
