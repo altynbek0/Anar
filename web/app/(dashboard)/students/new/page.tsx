@@ -1,8 +1,10 @@
+import { requireRole } from '@/lib/auth/require-role'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { QuestionnaireImport } from '@/components/students/QuestionnaireImport'
 
 export default async function NewStudentPage() {
+  await requireRole(['admin', 'deputy', 'class_teacher', 'manager'])
   return (
     <div className="p-4 sm:p-8">
       <div className="flex items-center gap-1.5 text-sm text-gray-400 mb-6">

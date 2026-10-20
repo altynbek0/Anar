@@ -20,11 +20,11 @@ export async function uploadSchoolLogo(formData: FormData): Promise<{ url?: stri
   if (!file || file.size === 0) return { error: 'Файл не выбран' }
   if (file.size > 2 * 1024 * 1024) return { error: 'Файл не должен превышать 2 МБ' }
 
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
-  const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'svg']
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+  const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp']
   const ext = (file.name.split('.').pop() ?? '').toLowerCase()
   if (!ALLOWED_TYPES.includes(file.type) || !ALLOWED_EXTS.includes(ext))
-    return { error: 'Разрешены только изображения (JPG, PNG, WebP, SVG)' }
+    return { error: 'Разрешены только изображения (JPG, PNG, WebP)' }
 
   const path = `schools/${profile.school_id}.${ext}`
 

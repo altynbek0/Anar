@@ -10,7 +10,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   const supabase = await createClient()
 
   // Batch 1: student + auth + queries that only need student id
-  const [{ data: student }, { data: { user } }, { data: observations }, { data: interests }, { data: aiInsight }] = await Promise.all([
+  const [{ data: student }, { data: { user } }, { data: observations }, { data: aiInsight }] = await Promise.all([
     supabase.from('students')
       .select('id, school_id, class_id, full_name, photo_url, parent_name, parent_phone, risk_level, status, goals, created_at, family_situation, health_status, dream, parent_goal, enrollment_year, class:classes(name)')
       .eq('id', id).single(),
@@ -19,7 +19,6 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
       .select('*, author:users(full_name), reactions:observation_reactions(emoji, user_id, user:users(full_name))')
       .eq('student_id', id).eq('source', 'manual')
       .order('created_at', { ascending: false }).limit(10),
-    supabase.from('student_interests').select('*').eq('student_id', id).single(),
     supabase.from('ai_insights')
       .select('overview, interests, academic, extracurricular, achievements, psychology, generated_at')
       .eq('student_id', id).single(),
@@ -86,7 +85,9 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <h1 className="text-xl font-bold text-gray-900">{student.full_name}</h1>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Активен</span>
+                  {student.status === 'active'
+                    ? <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Активен</span>
+                    : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">Выбыл</span>}
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     student.risk_level === 'high' ? 'bg-red-100 text-red-700' :
                     student.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
@@ -101,13 +102,6 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                     <span className="text-gray-400"> · Кл. рук.: {classTeacher.full_name}</span>
                   )}
                 </p>
-                {(interests?.subjects ?? []).length > 0 && (
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {(interests!.subjects as string[]).map((s: string) => (
-                      <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{s}</span>
-                    ))}
-                  </div>
-                )}
               </div>
               {canEdit && (
                 <StudentEditModal

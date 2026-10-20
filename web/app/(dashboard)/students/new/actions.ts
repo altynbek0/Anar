@@ -10,8 +10,13 @@ import { generateInitialSummaries, NO_DATA } from '@/lib/ai/student-summaries'
 // «Класс» (ответы анкеты, съехавшие колонки) классом не считаем, иначе в списке
 // появляются «классы» вроде «доброжелательная».
 function isClassName(name: string | undefined): name is string {
-  return !!name && /^\d{1,2}\s?[A-Za-zА-Яа-яЁё]{0,3}$/.test(name)
+  return !!name && /^\d{1,2}[A-Za-zА-Яа-яЁё]{0,3}$/.test(name)
 }
+
+// «10 А» и «10А» — один и тот же класс: убираем пробелы до проверки и поиска
+const normClass = (name: string | undefined): string | undefined => name?.replace(/\s+/g, '')
+
+const IMPORT_ROLES = ['admin', 'deputy', 'class_teacher', 'manager']
 
 export async function addStudent(_: unknown, formData: FormData) {
   const supabase = await createClient()
@@ -90,17 +95,19 @@ export async function importFromQuestionnaires(rows: QuestionnaireRow[]): Promis
   if (!user) return { imported: 0, error: 'Не авторизован' }
 
   const { data: profile } = await authClient
-    .from('users').select('school_id').eq('id', user.id).single()
+    .from('users').select('school_id, role').eq('id', user.id).single()
   if (!profile?.school_id) return { imported: 0, error: 'Школа не найдена' }
+  // Запись идёт через service-role (в обход RLS) — права проверяем здесь
+  if (!IMPORT_ROLES.includes(profile.role)) return { imported: 0, error: 'Нет прав для импорта' }
 
   // Use admin client for all DB writes — bypasses RLS for server-side bulk operations
   const db = createAdminClient()
   const schoolId = profile.school_id
 
-  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(isClassName))] as string[]
+  const classNames = [...new Set(rows.map(r => normClass(r.class_name?.trim())).filter(isClassName))] as string[]
   const classTypeMap: Record<string, string> = {}
   for (const r of rows) {
-    if (r.class_name?.trim() && r.class_type?.trim()) classTypeMap[r.class_name.trim()] = r.class_type.trim()
+    if (normClass(r.class_name) && r.class_type?.trim()) classTypeMap[normClass(r.class_name)!] = r.class_type.trim()
   }
   const classMap: Record<string, string> = {}
 
@@ -162,7 +169,7 @@ export async function importFromQuestionnaires(rows: QuestionnaireRow[]): Promis
   const nameToId: Record<string, string> = {}
 
   const profileFields = (r: QuestionnaireRow, extra?: object) => ({
-    class_id:         r.class_name?.trim() ? (classMap[r.class_name.trim()] ?? null) : null,
+    class_id:         normClass(r.class_name) ? (classMap[normClass(r.class_name)!] ?? null) : null,
     parent_name:      r.parent_name?.trim()      || null,
     parent_phone:     r.parent_phone?.trim()     || null,
     goals:            r.goals ?? [],
@@ -174,11 +181,15 @@ export async function importFromQuestionnaires(rows: QuestionnaireRow[]): Promis
     ...extra,
   })
 
+  // Повторный импорт не должен затирать уже заполненные поля пустыми ячейками файла
+  const nonEmpty = <T extends object>(o: T) =>
+    Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && !(Array.isArray(v) && v.length === 0))) as Partial<T>
+
   // 1. Reactivate departed students
   for (const r of toReactivate) {
     const key = norm(r.full_name)
     const id = departedMap.get(key)!
-    await db.from('students').update(profileFields(r, { status: 'active' })).eq('id', id)
+    await db.from('students').update(nonEmpty(profileFields(r, { status: 'active' }))).eq('id', id)
     nameToId[key] = id
   }
 
@@ -186,7 +197,7 @@ export async function importFromQuestionnaires(rows: QuestionnaireRow[]): Promis
   for (const r of alreadyActive) {
     const key = norm(r.full_name)
     const id = activeMap.get(key)!
-    await db.from('students').update(profileFields(r)).eq('id', id)
+    await db.from('students').update(nonEmpty(profileFields(r))).eq('id', id)
     nameToId[key] = id
   }
 
@@ -278,13 +289,14 @@ export async function importStudents(rows: ImportRow[]): Promise<{ imported: num
   if (!user) return { imported: 0, error: 'Не авторизован' }
 
   const { data: profile } = await supabase
-    .from('users').select('school_id').eq('id', user.id).single()
+    .from('users').select('school_id, role').eq('id', user.id).single()
   if (!profile?.school_id) return { imported: 0, error: 'Школа не найдена' }
+  if (!IMPORT_ROLES.includes(profile.role)) return { imported: 0, error: 'Нет прав для импорта' }
 
   const schoolId = profile.school_id
 
   // Build class name → id map (fetch existing then create missing)
-  const classNames = [...new Set(rows.map(r => r.class_name?.trim()).filter(isClassName))] as string[]
+  const classNames = [...new Set(rows.map(r => normClass(r.class_name?.trim())).filter(isClassName))] as string[]
   const classMap: Record<string, string> = {}
 
   if (classNames.length > 0) {
@@ -320,7 +332,7 @@ export async function importStudents(rows: ImportRow[]): Promise<{ imported: num
     .map(r => ({
       school_id: schoolId,
       full_name: r.full_name.trim(),
-      class_id: r.class_name?.trim() ? (classMap[r.class_name.trim()] ?? null) : null,
+      class_id: normClass(r.class_name) ? (classMap[normClass(r.class_name)!] ?? null) : null,
       parent_name: r.parent_name?.trim() || null,
       parent_phone: r.parent_phone?.trim() || null,
       status: 'active',

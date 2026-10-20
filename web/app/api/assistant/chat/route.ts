@@ -59,9 +59,13 @@ export async function POST(req: Request) {
 
   const ctx: ToolContext = { supabase, schoolId: profile.school_id }
 
+  // История приходит из браузера: ограничиваем число и длину сообщений (расход токенов)
   const messages: Anthropic.MessageParam[] = clientMessages
-    .filter(m => m.content?.trim())
-    .map(m => ({ role: m.role, content: m.content }))
+    .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .slice(-12)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }))
+  if (messages.length === 0 || messages[0].role !== 'user') messages.shift()
+  if (messages.length === 0) return new Response('No messages', { status: 400 })
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({

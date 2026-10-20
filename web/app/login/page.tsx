@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import { login } from './actions'
 import { Eye, EyeOff, ArrowRight, BookOpen, TrendingUp, Bell, Users, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 const FEATURES = [
@@ -37,6 +37,9 @@ const FEATURES = [
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, null)
   const [showPassword, setShowPassword] = useState(false)
+  // Страница, с которой middleware отправил на вход — вернёмся на неё после логина
+  const [next, setNext] = useState('')
+  useEffect(() => { setNext(new URLSearchParams(window.location.search).get('next') ?? '') }, [])
 
   return (
     <div className="min-h-screen flex">
@@ -162,6 +165,7 @@ export default function LoginPage() {
           </div>
 
           <form action={action} className="space-y-4">
+            <input type="hidden" name="next" value={next} />
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">

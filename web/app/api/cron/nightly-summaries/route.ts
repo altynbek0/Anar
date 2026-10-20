@@ -8,7 +8,8 @@ export const maxDuration = 60
 // и пишет историю версий. Запускается Vercel Cron (см. vercel.json).
 export async function GET(req: Request) {
   // Vercel добавляет заголовок Authorization: Bearer <CRON_SECRET>, если задан env CRON_SECRET.
-  if (process.env.CRON_SECRET && req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Без CRON_SECRET эндпоинт закрыт совсем: иначе любой мог бы запускать платные AI-запросы.
+  if (!process.env.CRON_SECRET || req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', { status: 401 })
   }
 

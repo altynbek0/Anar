@@ -1,5 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 // Контекст исполнения инструментов: клиент Supabase (RLS директора) + его школа.
 // Все инструменты read-only и жёстко scoped к schoolId — ассистент не может
@@ -122,12 +123,15 @@ export async function executeAssistantTool(name: string, input: Json, ctx: ToolC
   switch (name) {
     case 'get_school_overview': {
       const studs = await activeStudents(ctx)
-      const ids = studs.map(s => s.id)
       const highRisk = studs.filter(s => s.risk_level === 'high').length
+      // join по ученикам школы вместо списка id в .in() (длинный адрес запроса на больших школах)
+      const manualObs = () => ctx.supabase.from('observations')
+        .select('id, student:students!inner(school_id, status)', { count: 'exact', head: true })
+        .eq('source', 'manual').eq('student.school_id', ctx.schoolId).eq('student.status', 'active')
       const [classesC, obsC, alertsC, staffC, noRecent] = await Promise.all([
         ctx.supabase.from('classes').select('id', { count: 'exact', head: true }).eq('school_id', ctx.schoolId),
-        ids.length ? ctx.supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').in('student_id', ids) : Promise.resolve({ count: 0 }),
-        ids.length ? ctx.supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').eq('is_alert', true).in('student_id', ids) : Promise.resolve({ count: 0 }),
+        manualObs(),
+        manualObs().eq('is_alert', true),
         ctx.supabase.from('users').select('id', { count: 'exact', head: true }).eq('school_id', ctx.schoolId),
         ctx.supabase.rpc('get_students_no_recent_obs', { p_school_id: ctx.schoolId }),
       ])
@@ -153,11 +157,13 @@ export async function executeAssistantTool(name: string, input: Json, ctx: ToolC
     case 'get_class_stats': {
       const studs = await activeStudents(ctx)
       const cmap = await classNameMap(ctx)
-      const ids = studs.map(s => s.id)
       const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-      const { data: obs } = ids.length
-        ? await ctx.supabase.from('observations').select('student_id, is_alert').eq('source', 'manual').in('student_id', ids).gte('created_at', since30d)
-        : { data: [] as Json[] }
+      const obs = await fetchAllRows<{ student_id: string; is_alert: boolean }>((from, to) =>
+        ctx.supabase.from('observations')
+          .select('student_id, is_alert, student:students!inner(school_id, status)')
+          .eq('source', 'manual').eq('student.school_id', ctx.schoolId).eq('student.status', 'active')
+          .gte('created_at', since30d).order('id').range(from, to),
+      )
       const perStudent: Record<string, { total: number; alerts: number }> = {}
       for (const o of obs ?? []) {
         if (!perStudent[o.student_id]) perStudent[o.student_id] = { total: 0, alerts: 0 }
@@ -307,10 +313,13 @@ export async function executeAssistantTool(name: string, input: Json, ctx: ToolC
       const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       const [staffRes, obsRes] = await Promise.all([
         ctx.supabase.from('users').select('id, full_name, role').eq('school_id', ctx.schoolId)
-          .in('role', ['deputy', 'class_teacher', 'teacher', 'psychologist', 'nurse', 'security']),
-        ctx.supabase.from('observations')
-          .select('author_id, created_at, students!inner(school_id)')
-          .eq('source', 'manual').eq('students.school_id', ctx.schoolId).gte('created_at', since30d),
+          .in('role', ['deputy', 'class_teacher', 'teacher', 'psychologist', 'nurse', 'security']).neq('is_active', false),
+        fetchAllRows<{ author_id: string; created_at: string }>((from, to) =>
+          ctx.supabase.from('observations')
+            .select('author_id, created_at, students!inner(school_id)')
+            .eq('source', 'manual').eq('students.school_id', ctx.schoolId).gte('created_at', since30d)
+            .order('id').range(from, to),
+        ).then((data) => ({ data })),
       ])
       const stat: Record<string, { total: number; last: string }> = {}
       for (const o of (obsRes.data ?? []) as Json[]) {

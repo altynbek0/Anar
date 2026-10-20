@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
 import { ROLE_LABELS, ROLE_COLORS, cn } from '@/lib/utils'
@@ -6,22 +7,29 @@ import type { Role } from '@/types'
 import { StaffTable } from '@/components/staff/StaffTable'
 
 export default async function StaffPage() {
+  await requireRole(['admin'])
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profile } = await supabase
     .from('users').select('school_id, role').eq('id', user!.id).single()
 
-  const [{ data: staff }, { data: classes }] = await Promise.all([
-    supabase
+  const staffQuery = (withActiveFilter: boolean) => {
+    const q = supabase
       .from('users')
       .select('id, full_name, email, role, class_id')
       .eq('school_id', profile?.school_id ?? '')
-      .order('full_name'),
+    return (withActiveFilter ? q.neq('is_active', false) : q).order('full_name')
+  }
+
+  const [staffRes, { data: classes }] = await Promise.all([
+    staffQuery(true),
     supabase
       .from('classes').select('id, name, grade, letter, teacher_id')
       .eq('school_id', profile?.school_id ?? '').order('name'),
   ])
+  // Колонка is_active появляется SQL-миграцией; пока её нет — показываем всех
+  const { data: staff } = staffRes.error ? await staffQuery(false) : staffRes
 
   // Count only manually-entered observations per author. Questionnaire-imported
   // observations are excluded so this matches the dashboard feed and stats, which

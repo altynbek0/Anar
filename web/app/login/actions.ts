@@ -14,7 +14,10 @@ export async function login(_: unknown, formData: FormData) {
     return { error: 'Неверный логин или пароль' }
   }
 
-  redirect('/')
+  // Только внутренние пути: «//evil.com» и «https://…» — это открытый редирект
+  const next = (formData.get('next') as string | null) ?? ''
+  const safe = next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') && !next.startsWith('/login')
+  redirect(safe ? next : '/')
 }
 
 export async function logout() {

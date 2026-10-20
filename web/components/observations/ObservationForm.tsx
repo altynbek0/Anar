@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BookOpen, Brain, Activity, Palette, Heart, GraduationCap } from 'lucide-react'
+import { BookOpen, Brain, Activity, Palette, Heart, GraduationCap, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useI18n } from '@/lib/i18n/I18nProvider'
 
@@ -14,6 +14,7 @@ const CATEGORIES = [
   { id: 'sport', icon: Activity, color: 'text-green-600 bg-green-50 border-green-200' },
   { id: 'creative', icon: Palette, color: 'text-orange-600 bg-orange-50 border-orange-200' },
   { id: 'health', icon: Heart, color: 'text-red-600 bg-red-50 border-red-200' },
+  { id: 'social', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-200' },
 ] as const
 
 interface Student { id: string; full_name: string; class_name: string; class_id: string | null }

@@ -4,22 +4,49 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
+type Db = ReturnType<typeof createAdminClient>
+
+// Колонка departed_at появляется миграцией 20261020000000: пока её нет, обновляем без неё,
+// чтобы удаление/выпуск не ломались между выкладкой кода и применением SQL.
+async function markDeparted(
+  db: Db,
+  apply: (extra: Record<string, unknown>) => PromiseLike<{ error: { message?: string } | null }>,
+) {
+  const res = await apply({ departed_at: new Date().toISOString() })
+  if (res.error?.message?.includes('departed_at')) return apply({})
+  return res
+}
+
 export async function deleteStudent(studentId: string, departureReason: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Не авторизован' }
 
   const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+    .from('users').select('role, school_id').eq('id', user.id).single()
 
   if (!['admin', 'deputy', 'manager'].includes(profile?.role ?? ''))
     return { error: 'Нет прав для удаления ученика' }
 
-  await supabase.from('observations').delete().eq('student_id', studentId)
+  // Ученик должен быть из школы вызывающего (RLS на students_select это гарантирует)
+  const { data: student } = await supabase
+    .from('students').select('id').eq('id', studentId).eq('school_id', profile!.school_id).maybeSingle()
+  if (!student) return { error: 'Ученик не найден' }
 
-  const { error } = await supabase.from('students')
-    .update({ status: 'departed', departure_reason: departureReason })
-    .eq('id', studentId)
+  // Наблюдения чужих авторов RLS удалить не даёт — чистим через service-role
+  const db = createAdminClient()
+  const { data: obs } = await db.from('observations').select('id').eq('student_id', studentId)
+  const obsIds = (obs ?? []).map((o) => o.id)
+  if (obsIds.length > 0) {
+    const { error: rErr } = await db.from('observation_reactions').delete().in('observation_id', obsIds)
+    if (rErr) return { error: 'Не удалось удалить ученика' }
+    const { error: oErr } = await db.from('observations').delete().in('id', obsIds)
+    if (oErr) return { error: 'Не удалось удалить ученика' }
+  }
+
+  const { error } = await markDeparted(db, (extra) => db.from('students')
+    .update({ status: 'departed', departure_reason: departureReason, ...extra })
+    .eq('id', studentId))
   if (error) return { error: 'Не удалось удалить ученика' }
 
   revalidatePath('/students')
@@ -34,26 +61,44 @@ export async function graduateClass(classId: string): Promise<{ error?: string }
   if (!user) return { error: 'Не авторизован' }
 
   const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+    .from('users').select('role, school_id').eq('id', user.id).single()
 
   if (!['admin', 'manager'].includes(profile?.role ?? ''))
     return { error: 'Нет прав для выпуска класса' }
 
-  const { data: activeStudents } = await supabase
+  const db = createAdminClient()
+
+  const { data: cls } = await db
+    .from('classes').select('id').eq('id', classId).eq('school_id', profile!.school_id).maybeSingle()
+  if (!cls) return { error: 'Класс не найден' }
+
+  const { data: activeStudents } = await db
     .from('students').select('id').eq('class_id', classId).eq('status', 'active')
   const activeIds = (activeStudents ?? []).map((s) => s.id)
 
   if (activeIds.length > 0) {
-    await supabase.from('observations').delete().in('student_id', activeIds)
+    const { data: obs } = await db.from('observations').select('id').in('student_id', activeIds)
+    const obsIds = (obs ?? []).map((o) => o.id)
+    if (obsIds.length > 0) {
+      const { error: rErr } = await db.from('observation_reactions').delete().in('observation_id', obsIds)
+      if (rErr) return { error: 'Не удалось перевести учеников' }
+      const { error: oErr } = await db.from('observations').delete().in('id', obsIds)
+      if (oErr) return { error: 'Не удалось перевести учеников' }
+    }
   }
 
-  const { error: studentsErr } = await supabase
+  // class_id обнуляем: иначе внешний ключ students.class_id не даст удалить класс
+  const { error: studentsErr } = await markDeparted(db, (extra) => db
     .from('students')
-    .update({ status: 'departed', departure_reason: 'Выпуск' })
-    .eq('class_id', classId).eq('status', 'active')
+    .update({ status: 'departed', departure_reason: 'Выпуск', class_id: null, ...extra })
+    .eq('class_id', classId).eq('status', 'active'))
   if (studentsErr) return { error: 'Не удалось перевести учеников' }
 
-  const { error: classErr } = await supabase.from('classes').delete().eq('id', classId)
+  // Выбывшие ученики этого класса (ранее ушедшие) тоже держат ссылку на класс
+  await db.from('students').update({ class_id: null }).eq('class_id', classId)
+  await db.from('users').update({ class_id: null }).eq('class_id', classId)
+
+  const { error: classErr } = await db.from('classes').delete().eq('id', classId)
   if (classErr) return { error: 'Не удалось удалить класс' }
 
   revalidatePath('/students')
@@ -95,7 +140,7 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
   if (!user) return { error: 'Не авторизован' }
 
   const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+    .from('users').select('role, school_id').eq('id', user.id).single()
 
   if (!['admin', 'manager'].includes(profile?.role ?? ''))
     return { error: 'Нет прав для удаления класса' }
@@ -103,6 +148,11 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
   // Удаляем класс вместе с учениками и всеми их данными. Каскадов в БД нет, поэтому
   // чистим зависимые таблицы по порядку; admin-клиент — RLS не пускает удалять ai_insights.
   const db = createAdminClient()
+
+  // service-role обходит RLS — убеждаемся, что класс принадлежит школе вызывающего
+  const { data: cls } = await db
+    .from('classes').select('id').eq('id', classId).eq('school_id', profile!.school_id).maybeSingle()
+  if (!cls) return { error: 'Класс не найден' }
 
   const { data: classStudents } = await db.from('students').select('id').eq('class_id', classId)
   const studentIds = (classStudents ?? []).map((s) => s.id)

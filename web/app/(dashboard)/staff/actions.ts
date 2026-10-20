@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { randomInt } from 'node:crypto'
 
 export async function deleteStaff(userId: string) {
   const supabase = await createClient()
@@ -21,7 +22,31 @@ export async function deleteStaff(userId: string) {
     return { error: 'Пользователь не найден' }
 
   const admin = createAdminClient()
-  await admin.from('users').delete().eq('id', userId)
+
+  // Внешние ключи без каскада: снимаем ссылки на сотрудника
+  await admin.from('classes').update({ teacher_id: null }).eq('teacher_id', userId)
+  await admin.from('observation_reactions').delete().eq('user_id', userId)
+
+  // Есть наблюдения — удалить аккаунт нельзя (внешний ключ author_id). Вместо этого
+  // деактивируем: вход заблокирован, из списка сотрудников скрыт, наблюдения и авторство остаются.
+  const { count: obsCount } = await admin
+    .from('observations').select('id', { count: 'exact', head: true }).eq('author_id', userId)
+  if ((obsCount ?? 0) > 0) {
+    const { error: banErr } = await admin.auth.admin.updateUserById(userId, { ban_duration: '876000h' })
+    if (banErr) return { error: 'Не удалось деактивировать сотрудника' }
+    const { error: deactErr } = await admin
+      .from('users').update({ is_active: false, class_id: null }).eq('id', userId)
+    if (deactErr) {
+      await admin.auth.admin.updateUserById(userId, { ban_duration: 'none' })
+      return { error: 'Не удалось деактивировать сотрудника' }
+    }
+    revalidatePath('/staff')
+    revalidatePath('/', 'layout')
+    return { success: true, deactivated: true, observations: obsCount ?? 0 }
+  }
+
+  const { error: delErr } = await admin.from('users').delete().eq('id', userId)
+  if (delErr) return { error: 'Не удалось удалить сотрудника' }
   await admin.auth.admin.deleteUser(userId)
 
   revalidatePath('/staff')
@@ -43,7 +68,17 @@ export async function changeStaffRole(
   if (profile?.role !== 'admin') return { error: 'Нет прав' }
   if (userId === user.id) return { error: 'Нельзя изменить свою роль' }
 
+  // Сотрудник и выбранные классы должны быть из школы администратора (дальше — service-role)
+  const { data: target } = await supabase
+    .from('users').select('school_id').eq('id', userId).single()
+  if (!target || target.school_id !== profile.school_id) return { error: 'Пользователь не найден' }
+
   const admin = createAdminClient()
+  if (classIds.length > 0) {
+    const { data: own } = await admin
+      .from('classes').select('id').eq('school_id', profile.school_id).in('id', classIds)
+    if ((own ?? []).length !== new Set(classIds).size) return { error: 'Класс не найден' }
+  }
   const resolved = [...classIds]
 
   // Create a new class if requested
@@ -91,7 +126,7 @@ export async function resetStaffPassword(userId: string) {
     return { error: 'Пользователь не найден' }
 
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  const newPassword = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  const newPassword = Array.from({ length: 10 }, () => chars[randomInt(chars.length)]).join('')
 
   const admin = createAdminClient()
   const { error } = await admin.auth.admin.updateUserById(userId, { password: newPassword })

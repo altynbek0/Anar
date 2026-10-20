@@ -188,3 +188,10 @@
     @apply font-sans;
   }
 }
+/* Подсказки Recharts рисуют белый фон инлайном — в тёмной теме перекрашиваем */
+.dark .recharts-default-tooltip {
+  background-color: oklch(0.22 0.012 260) !important;
+  border-color: oklch(0.32 0.012 260) !important;
+  color: oklch(0.96 0.004 260);
+}
+.dark .recharts-tooltip-label, .dark .recharts-tooltip-item { color: oklch(0.9 0.006 260) !important; }

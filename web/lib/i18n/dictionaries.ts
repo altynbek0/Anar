@@ -125,6 +125,7 @@ const ru: Dict = {
   'book.errPdf': 'Не удалось сформировать PDF',
 
   // students list
+  'stud.noClass': 'Без класса',
   'stud.title': 'Список учеников',
   'stud.add': 'Добавить ученика',
   'stud.studentsWord': 'учеников',
@@ -291,6 +292,7 @@ const en: Dict = {
   'book.errPdf': 'Could not generate PDF',
 
   // students list
+  'stud.noClass': 'No class',
   'stud.title': 'Student list',
   'stud.add': 'Add student',
   'stud.studentsWord': 'students',

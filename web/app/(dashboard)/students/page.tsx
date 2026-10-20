@@ -3,6 +3,7 @@ import { StudentsListClient } from '@/components/students/StudentsListClient'
 import Link from 'next/link'
 import { UserPlus } from 'lucide-react'
 import { getT } from '@/lib/i18n/server'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 export default async function StudentsPage() {
   const { t } = await getT()
@@ -34,14 +35,18 @@ export default async function StudentsPage() {
       : Promise.resolve({ data: [] }),
   ])
 
-  // Observation counts зависят от списка учеников → отдельная волна
-  const studentIds = (students ?? []).map((s) => s.id)
-  const obsResult = studentIds.length > 0
-    ? await supabase.from('observations').select('student_id, is_alert').eq('source', 'manual').in('student_id', studentIds)
-    : { data: [] as { student_id: string; is_alert: boolean }[] }
+  // Счётчики наблюдений: join по ученикам школы вместо списка id в .in() (длинный адрес на больших
+  // школах) и постраничное чтение — иначе PostgREST обрезает ответ на 1000 строк.
+  const obsRows = await fetchAllRows<{ student_id: string; is_alert: boolean }>((from, to) =>
+    supabase.from('observations')
+      .select('student_id, is_alert, student:students!inner(school_id, status)')
+      .eq('source', 'manual')
+      .eq('student.school_id', schoolId).eq('student.status', 'active')
+      .order('id').range(from, to),
+  )
 
   const obsMap: Record<string, { total: number; alerts: number }> = {}
-  for (const o of obsResult.data ?? []) {
+  for (const o of obsRows) {
     if (!obsMap[o.student_id]) obsMap[o.student_id] = { total: 0, alerts: 0 }
     obsMap[o.student_id].total++
     if (o.is_alert) obsMap[o.student_id].alerts++
@@ -60,6 +65,20 @@ export default async function StudentsPage() {
         alert_count: obsMap[s.id]?.alerts ?? 0,
       })),
   }))
+
+  // Ученики без класса (например, после импорта с нераспознанным классом) — отдельной группой,
+  // иначе они пропадают из списка совсем
+  const classless = (students ?? []).filter((s) => !s.class_id)
+  if (classless.length > 0) {
+    classList.push({
+      id: '__none__', name: '', grade: 0, letter: '', virtual: true,
+      students: classless.map((s) => ({
+        ...s,
+        obs_count: obsMap[s.id]?.total ?? 0,
+        alert_count: obsMap[s.id]?.alerts ?? 0,
+      })),
+    } as (typeof classList)[number] & { virtual: boolean })
+  }
 
   return (
     <div className="p-4 sm:p-8">

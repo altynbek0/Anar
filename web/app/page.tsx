@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/layout/DashboardShell'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { DashboardContent } from '@/components/dashboard/DashboardContent'
+
+const NO_CLASS_ID = '00000000-0000-0000-0000-000000000000'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -29,6 +32,9 @@ export default async function HomePage() {
     classTeacherClassIds = (myClasses ?? []).map((c: any) => c.id)
     classTeacherClassName = (myClasses ?? []).map((c: any) => c.name).join(', ') || null
   }
+  const isClassTeacher = userRole === 'class_teacher'
+  // Классрук без назначенных классов видит пустую статистику, а не всей школы
+  if (isClassTeacher && classTeacherClassIds.length === 0) classTeacherClassIds = [NO_CLASS_ID]
   const scopedToClasses = classTeacherClassIds.length > 0
 
   // For class teacher: get student IDs in their classes to scope observations
@@ -39,13 +45,11 @@ export default async function HomePage() {
     classStudentIds = (classStudents ?? []).map((s: any) => s.id)
   }
 
-  // All student IDs in scope — used to explicitly filter observations (avoids RLS join gaps)
+  // Для классрука — id учеников его классов. Для остальных фильтруем по школе join'ом
+  // (списки из сотен uuid в .in() раздувают адрес запроса и ломают его на больших школах).
   let obsStudentIds: string[] = classStudentIds ?? []
-  if (!scopedToClasses && schoolId) {
-    const { data: schoolStudents } = await supabase
-      .from('students').select('id').eq('school_id', schoolId).eq('status', 'active')
-    obsStudentIds = (schoolStudents ?? []).map((s: any) => s.id)
-  }
+  // Пустой список ломал бы фильтры ниже (они сворачиваются в «вся школа») — подставляем пустой id
+  if (obsStudentIds.length === 0) obsStudentIds = [NO_CLASS_ID]
 
   const studentFilter = scopedToClasses
     ? supabase.from('students').select('id', { count: 'exact', head: true }).in('class_id', classTeacherClassIds).eq('status', 'active')
@@ -55,28 +59,35 @@ export default async function HomePage() {
     ? supabase.from('students').select('id, full_name, risk_level, class:classes(name)').in('class_id', classTeacherClassIds).in('risk_level', ['high', 'medium']).limit(5)
     : supabase.from('students').select('id, full_name, risk_level, class:classes(name)').eq('school_id', schoolId).in('risk_level', ['high', 'medium']).limit(5)
 
-  const obsSelect = 'id, author_id, student_id, content, category, created_at, is_alert, student:students(full_name, class_id, photo_url, class:classes(name)), author:users(full_name), reactions:observation_reactions(emoji, user_id, user:users(full_name))'
+  // students!inner + фильтр по students.school_id/status: учитываем только активных учеников школы
+  const obsSelect = 'id, author_id, student_id, content, category, created_at, is_alert, student:students!inner(status, school_id, full_name, class_id, photo_url, class:classes(name)), author:users(full_name), reactions:observation_reactions(emoji, user_id, user:users(full_name))'
+  const countSelect = 'id, student:students!inner(status, school_id)'
 
-  const obsCountQuery = obsStudentIds.length > 0
-    ? supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').in('student_id', obsStudentIds)
-    : supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const obsScope = (q: any) => (scopedToClasses
+    ? q.in('student_id', obsStudentIds).eq('student.status', 'active')
+    : q.eq('student.school_id', schoolId).eq('student.status', 'active'))
+  const manualCount = () => obsScope(
+    supabase.from('observations').select(countSelect, { count: 'exact', head: true }).eq('source', 'manual'),
+  )
 
-  // Alerts + full observations feed — both scoped via obsStudentIds
-  const alertQuery = obsStudentIds.length > 0
-    ? supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').eq('is_alert', true).in('student_id', obsStudentIds)
-    : supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').eq('is_alert', true)
+  const obsCountQuery = manualCount()
+  const alertQuery = manualCount().eq('is_alert', true)
 
-  const obsDataQuery = obsStudentIds.length > 0
-    ? supabase.from('observations').select(obsSelect).eq('source', 'manual').in('student_id', obsStudentIds).order('created_at', { ascending: false })
-    : supabase.from('observations').select(obsSelect).eq('source', 'manual').order('created_at', { ascending: false })
+  const canViewAllObs = ['admin', 'deputy'].includes(userRole)
+  // Лента «Все наблюдения» — только админу и завучу; остальным данные ленты не отправляем
+  const feedQuery = canViewAllObs
+    ? obsScope(supabase.from('observations').select(obsSelect).eq('source', 'manual')).order('created_at', { ascending: false }).limit(300)
+    : Promise.resolve({ data: [] })
+  // Тревоги нужны карточке «Тревожные наблюдения» всем ролям и не должны зависеть от размера ленты
+  const alertsFeedQuery = obsScope(supabase.from('observations').select(obsSelect).eq('source', 'manual').eq('is_alert', true))
+    .order('created_at', { ascending: false }).limit(200)
 
   const now = new Date()
   const since30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
   const since7d  = new Date(now.getTime() -  7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const makeObsQ = () => obsStudentIds.length > 0
-    ? supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').in('student_id', obsStudentIds)
-    : supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual')
+  const makeObsQ = () => manualCount()
 
   // Один общий параллельный батч вместо пяти последовательных «волн»: все эти
   // запросы зависят лишь от schoolId / obsStudentIds, которые уже известны здесь.
@@ -85,7 +96,7 @@ export default async function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [
     studentsRes, observationsRes, riskRes, classesRes, noRecentObsRes,
-    alertRes, obsDataRes,
+    alertRes, obsDataRes, alertsFeedRes,
     newStudentsRes, newObsRes, newAlertObsRes, departedRes,
     staffRes, staffObs30dRes,
     aiReportRes,
@@ -96,19 +107,24 @@ export default async function HomePage() {
     supabase.from('classes').select('id, name').eq('school_id', schoolId).order('name'),
     schoolId ? supabase.rpc('get_students_no_recent_obs', { p_school_id: schoolId }) : Promise.resolve({ data: [] }),
     alertQuery,
-    obsDataQuery,
+    feedQuery,
+    alertsFeedQuery,
     supabase.from('students').select('id', { count: 'exact', head: true })
       .eq('school_id', schoolId).eq('status', 'active').gte('created_at', since30d),
     makeObsQ().gte('created_at', since7d),
     makeObsQ().eq('is_alert', true).gte('created_at', since7d),
     supabase.from('students').select('id', { count: 'exact', head: true })
-      .eq('school_id', schoolId).eq('status', 'departed').gte('created_at', since30d),
+      .eq('school_id', schoolId).eq('status', 'departed').gte('departed_at', since30d),
     supabase.from('users')
       .select('id, full_name, role').eq('school_id', schoolId)
-      .in('role', ['deputy', 'class_teacher', 'teacher', 'psychologist', 'nurse', 'security']),
-    supabase.from('observations')
-      .select('author_id, created_at, students!inner(school_id)')
-      .eq('source', 'manual').eq('students.school_id', schoolId).gte('created_at', since30d),
+      .in('role', ['deputy', 'class_teacher', 'teacher', 'psychologist', 'nurse', 'security']).neq('is_active', false),
+    // постранично: ответ PostgREST обрезается на 1000 строк, и активность педагогов занижалась бы
+    fetchAllRows<{ author_id: string; created_at: string }>((from, to) =>
+      supabase.from('observations')
+        .select('author_id, created_at, students!inner(school_id)')
+        .eq('source', 'manual').eq('students.school_id', schoolId).gte('created_at', since30d)
+        .order('id').range(from, to),
+    ).then((data) => ({ data })),
     (canViewAnalytics && schoolId)
       ? supabase.from('school_ai_reports').select('recommendations').eq('school_id', schoolId).order('month', { ascending: false }).limit(1).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -116,7 +132,10 @@ export default async function HomePage() {
   ]) as any[]
 
   const alertCount = alertRes.count ?? 0
-  const recentObsData = obsDataRes.data ?? []
+  // Лента + тревоги без дублей
+  const recentObsData = [...new Map(
+    [...(obsDataRes.data ?? []), ...(alertsFeedRes.data ?? [])].map((o: { id: string }) => [o.id, o]),
+  ).values()].sort((a: any, b: any) => (b.created_at as string).localeCompare(a.created_at as string))
   const newStudentsMonth   = newStudentsRes.count ?? 0
   const newObsWeek         = newObsRes.count ?? 0
   const newAlertObsWeek    = newAlertObsRes.count ?? 0
@@ -190,7 +209,7 @@ export default async function HomePage() {
     days_since: r.days_since as number | null,
   }))
   // Scope to class teacher's students if needed
-  if (classStudentIds !== null && classStudentIds.length > 0) {
+  if (classStudentIds !== null) {
     noRecentObs = noRecentObs.filter((r: { id: string }) => classStudentIds!.includes(r.id))
   }
 
@@ -208,7 +227,7 @@ export default async function HomePage() {
         classes={classes}
         schoolYear={schoolYear}
         isAdmin={['admin', 'manager'].includes(userRole)}
-        canViewAllObs={['admin', 'deputy'].includes(userRole)}
+        canViewAllObs={canViewAllObs}
         canViewAnalytics={canViewAnalytics}
         classTeacherClassName={classTeacherClassName}
         currentUserId={user!.id}

@@ -12,7 +12,7 @@ interface Student {
   full_name: string
   risk_level: string
   status: string
-  class_id: string
+  class_id: string | null
   photo_url?: string | null
   obs_count: number
   alert_count: number
@@ -24,6 +24,8 @@ interface ClassGroup {
   grade: number
   letter: string
   students: Student[]
+  // «Без класса»: служебная группа, к ней не применимы правка/выпуск/удаление класса
+  virtual?: boolean
 }
 
 const CLASS_COLORS = [
@@ -210,10 +212,10 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                     <td className="px-4 py-3.5 sm:px-5 sm:py-4">
                       <div className="flex items-center gap-3">
                         <div className={cn('w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0', colorClass)}>
-                          {cls.name}
+                          {cls.virtual ? '—' : cls.name}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm font-semibold text-gray-900">{cls.name} {t('stud.classWord')}</span>
+                          <span className="text-sm font-semibold text-gray-900">{cls.virtual ? t('stud.noClass') : `${cls.name} ${t('stud.classWord')}`}</span>
                           <span className="text-xs text-gray-400 ml-2">{cls.students.length} {t('stud.studentsAbbr')}</span>
                           {/* Mobile: inline stats */}
                           <div className="flex items-center gap-1.5 mt-0.5 sm:hidden">
@@ -242,7 +244,7 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                       {totalAlerts > 0 ? <span className="text-sm font-semibold text-red-500">{totalAlerts}</span> : <span className="text-xs text-gray-200">—</span>}
                     </td>
                     <td className="px-4 py-3.5 sm:px-5 sm:py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      {canDelete && (
+                      {canDelete && !cls.virtual && (
                         <div className="flex items-center justify-end gap-1 sm:opacity-0 sm:group-hover/cls:opacity-100">
                           <button onClick={() => openEditModal(cls)} disabled={loadingId === cls.id} title={t('stud.editClass')} className="p-1.5 text-gray-400 hover:text-blue-500 active:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
                             <Pencil className="w-4 h-4" />

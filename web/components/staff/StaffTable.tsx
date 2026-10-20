@@ -48,11 +48,18 @@ export function StaffTable({ staff: initial, classes, currentUserId }: {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Удалить «${name}»? Это действие нельзя отменить.`)) return
+    const obs = staff.find(s => s.id === id)?.obs_count ?? 0
+    const question = obs > 0
+      ? `У «${name}» есть наблюдения (${obs}), поэтому аккаунт будет деактивирован: вход заблокируется, сотрудник пропадёт из списка, а наблюдения останутся. Продолжить?`
+      : `Удалить «${name}»? Это действие нельзя отменить.`
+    if (!confirm(question)) return
     setLoadingId(id)
     const res = await deleteStaff(id)
     if (res.error) alert(res.error)
-    else setStaff(prev => prev.filter(s => s.id !== id))
+    else {
+      setStaff(prev => prev.filter(s => s.id !== id))
+      if ('deactivated' in res && res.deactivated) alert(`«${name}» деактивирован. Наблюдения сохранены.`)
+    }
     setLoadingId(null)
   }
 

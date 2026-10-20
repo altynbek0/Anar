@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function dismissAlert(id: string): Promise<{ error?: string }> {
@@ -59,7 +60,11 @@ export async function deleteObservation(id: string) {
 
   if ((count ?? 0) > 0) return { error: 'Можно удалить только последнее наблюдение' }
 
-  const { error } = await supabase.from('observations').delete().eq('id', id)
+  // Реакции других людей RLS удалить автору не даёт, а без каскада они блокируют удаление.
+  // Автор и «последнее наблюдение» уже проверены выше — дальше чистим через service-role.
+  const db = createAdminClient()
+  await db.from('observation_reactions').delete().eq('observation_id', id)
+  const { error } = await db.from('observations').delete().eq('id', id).eq('author_id', user.id)
   if (error) return { error: 'Ошибка удаления' }
 
   revalidatePath('/')

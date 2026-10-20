@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import { StudentBookClient } from '@/components/pdf/StudentBookClient'
 
 export default async function StudentBookPage() {
+  await requireRole(['admin', 'deputy', 'teacher', 'class_teacher', 'psychologist', 'nurse', 'manager'])
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

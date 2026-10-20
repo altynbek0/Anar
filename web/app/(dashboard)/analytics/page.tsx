@@ -1,7 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { AnalyticsClient } from '@/components/analytics/AnalyticsClient'
 
+// День по времени Бишкека (UTC+6): ночные наблюдения не должны попадать в «вчера»
+const dayKey = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bishkek' }).format(d)
+
 export default async function AnalyticsPage() {
+  await requireRole(['admin', 'deputy', 'manager'])
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -41,7 +47,6 @@ export default async function AnalyticsPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const students = (studentsRes.data ?? []) as any[]
-  const studentIds = students.map((s) => s.id)
   const totalStudents = students.length
 
   // "В зоне риска" = студенты без наблюдений 14+ дней (алгоритмическое правило)
@@ -51,22 +56,26 @@ export default async function AnalyticsPage() {
   const riskCount = noRecentObsData.length
 
   // ── Batch 2: observation data (only active students) ──────────────────────
-  const [obsCountRes, alertCountRes, obs30dRes] = await Promise.all([
-    studentIds.length > 0
-      ? supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').in('student_id', studentIds)
-      : Promise.resolve({ count: 0 }),
-    studentIds.length > 0
-      ? supabase.from('observations').select('id', { count: 'exact', head: true }).eq('source', 'manual').in('student_id', studentIds).eq('is_alert', true)
-      : Promise.resolve({ count: 0 }),
-    studentIds.length > 0
-      ? supabase.from('observations').select('created_at, is_alert, category, author_id, student_id').eq('source', 'manual').in('student_id', studentIds).gte('created_at', since30d)
-      : Promise.resolve({ data: [] }),
+  // Join по ученикам школы вместо .in(studentIds): список из сотен uuid ломает адрес запроса
+  const activeObs = () => supabase.from('observations')
+    .select('id, student:students!inner(school_id, status)', { count: 'exact', head: true })
+    .eq('source', 'manual').eq('student.school_id', schoolId).eq('student.status', 'active')
+  const [obsCountRes, alertCountRes, obs30dRows] = await Promise.all([
+    activeObs(),
+    activeObs().eq('is_alert', true),
+    // постранично: ответ PostgREST обрезается на 1000 строк
+    fetchAllRows<{ created_at: string; is_alert: boolean; category: string; author_id: string; student_id: string }>((from, to) =>
+      supabase.from('observations')
+        .select('created_at, is_alert, category, author_id, student_id, student:students!inner(school_id, status)')
+        .eq('source', 'manual').eq('student.school_id', schoolId).eq('student.status', 'active')
+        .gte('created_at', since30d).order('id').range(from, to),
+    ),
   ])
 
   const totalObservations = obsCountRes.count ?? 0
   const alertObservations = alertCountRes.count ?? 0
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const obs30d = (obs30dRes.data ?? []) as any[]
+  const obs30d = obs30dRows as any[]
 
   // ── Departure reasons ──────────────────────────────────────────────────────
   const reasonCounts: Record<string, number> = {}
@@ -85,12 +94,12 @@ export default async function AnalyticsPage() {
   const trendMap: Record<string, { label: string; total: number; alerts: number }> = {}
   for (let i = 29; i >= 0; i--) {
     const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-    const key = d.toISOString().slice(0, 10)
-    const label = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '')
+    const key = dayKey(d)
+    const label = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'Asia/Bishkek' }).replace('.', '')
     trendMap[key] = { label, total: 0, alerts: 0 }
   }
   for (const obs of obs30d) {
-    const key = (obs.created_at as string).slice(0, 10)
+    const key = dayKey(new Date(obs.created_at as string))
     if (trendMap[key]) {
       trendMap[key].total++
       if (obs.is_alert) trendMap[key].alerts++

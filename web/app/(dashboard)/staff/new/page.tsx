@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { AddStaffForm } from '@/components/staff/AddStaffForm'
 
 export default async function NewStaffPage() {
+  await requireRole(['admin', 'manager'])
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
