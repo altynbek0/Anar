@@ -10,7 +10,7 @@ const ru: Dict = {
   'nav.book': 'Книга ученика',
   'nav.analytics': 'Аналитика школы',
   'nav.assistant': 'AI-ассистент',
-  'nav.addObservation': 'Добавить наблюдение',
+  'nav.addObservation': 'Новое наблюдение',
   'common.logout': 'Выйти',
   'theme.light': 'Светлая',
   'theme.dark': 'Тёмная',

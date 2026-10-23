@@ -205,7 +205,16 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
 
           return (
             <div key={cls.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              <table className="w-full">
+              {/* table-fixed + colgroup: у каждого класса своя таблица, и без фиксированных ширин
+                  колонки «Риск / Наблюдения / Тревожные» уезжали по-разному в каждой строке */}
+              <table className="w-full table-fixed">
+                <colgroup>
+                  <col />
+                  <col className="hidden sm:table-column w-36" />
+                  <col className="hidden sm:table-column w-32" />
+                  <col className="hidden sm:table-column w-32" />
+                  <col className="w-24 sm:w-28" />
+                </colgroup>
                 <tbody>
                   {/* ── Class header row ── */}
                   <tr className="group/cls cursor-pointer hover:bg-gray-50/60 active:bg-gray-50 transition-colors" onClick={() => toggle(cls.id)}>
@@ -215,7 +224,7 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                           {cls.virtual ? '—' : cls.name}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm font-semibold text-gray-900">{cls.virtual ? t('stud.noClass') : `${cls.name} ${t('stud.classWord')}`}</span>
+                          <span className="text-sm font-semibold text-gray-900 break-words">{cls.virtual ? t('stud.noClass') : `${cls.name} ${t('stud.classWord')}`}</span>
                           <span className="text-xs text-gray-400 ml-2">{cls.students.length} {t('stud.studentsAbbr')}</span>
                           {/* Mobile: inline stats */}
                           <div className="flex items-center gap-1.5 mt-0.5 sm:hidden">

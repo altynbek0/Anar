@@ -156,7 +156,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all whitespace-nowrap',
                 isActive
                   ? 'bg-[#EFF6FF] text-[#2563EB] font-medium'
                   : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
