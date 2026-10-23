@@ -210,10 +210,10 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
               <table className="w-full table-fixed">
                 <colgroup>
                   <col />
-                  <col className="hidden sm:table-column w-36" />
-                  <col className="hidden sm:table-column w-32" />
-                  <col className="hidden sm:table-column w-32" />
-                  <col className="w-24 sm:w-28" />
+                  <col className="hidden sm:table-column sm:w-[20%]" />
+                  <col className="hidden sm:table-column sm:w-[20%]" />
+                  <col className="hidden sm:table-column sm:w-[20%]" />
+                  <col className="w-24 sm:w-[10%]" />
                 </colgroup>
                 <tbody>
                   {/* ── Class header row ── */}
