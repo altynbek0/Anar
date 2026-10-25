@@ -71,7 +71,9 @@ const styles = StyleSheet.create({
   schoolLogo: { width: 30, height: 30, borderRadius: 15, objectFit: 'cover' },
   schoolLogoPh: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#E5E5E5' },
   schoolNameTop: { fontSize: 11, fontWeight: 'bold', color: INK },
-  strideLogo: { height: 22, width: 76, objectFit: 'contain' },
+  anarLogo: { width: 26, height: 26 },
+  anarBrand: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  anarBrandText: { fontSize: 15, fontWeight: 'bold', color: INK },
   deco: { position: 'absolute', top: 96, right: -46, width: 320, height: 364 },
   leftEdge: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, backgroundColor: '#0B0B0D' },
 
@@ -133,7 +135,10 @@ function CoverHeader({ data }: { data: BookData }) {
         {data.schoolLogoUrl ? <Image src={data.schoolLogoUrl} style={styles.schoolLogo} /> : <View style={styles.schoolLogoPh} />}
         <Text style={styles.schoolNameTop}>{data.schoolName || 'Название школы'}</Text>
       </View>
-      <Image src="/pdf/stride-logo.png" style={styles.strideLogo} />
+      <View style={styles.anarBrand}>
+        <Image src="/pdf/anar-logo.png" style={styles.anarLogo} />
+        <Text style={styles.anarBrandText}>Anar</Text>
+      </View>
     </View>
   )
 }
