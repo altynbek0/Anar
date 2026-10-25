@@ -94,7 +94,7 @@ export function SchoolYearBadge({ schoolYear, isAdmin }: Props) {
               <button
                 onClick={handleAdvance}
                 disabled={loading}
-                className="flex-1 py-2.5 text-sm font-medium text-white bg-[#2563EB] rounded-xl hover:bg-[#1D4ED8] disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-[#C93252] rounded-xl hover:bg-[#A92842] disabled:opacity-50"
               >
                 {loading ? 'Переходим...' : 'Подтвердить'}
               </button>

@@ -66,7 +66,7 @@ export default async function StaffPage() {
         </div>
         <Link
           href="/staff/new"
-          className="flex items-center gap-2 bg-[#2563EB] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-sm font-medium hover:bg-[#1D4ED8] transition-colors whitespace-nowrap"
+          className="flex items-center gap-2 bg-[#C93252] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-sm font-medium hover:bg-[#A92842] transition-colors whitespace-nowrap"
         >
           <UserPlus className="w-4 h-4" />
           Добавить сотрудника

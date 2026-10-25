@@ -355,7 +355,7 @@ function PreviewTable({ initialRows, students, parents, onConfirm, onBack, loadi
             disabled={loading}
             className={cn(
               'flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all',
-              loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]'
+              loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#C93252] text-white hover:bg-[#A92842]'
             )}
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -815,7 +815,7 @@ export function QuestionnaireImport() {
           className={cn(
             'flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium transition-all',
             allLoaded
-              ? 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]'
+              ? 'bg-[#C93252] text-white hover:bg-[#A92842]'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           )}
         >

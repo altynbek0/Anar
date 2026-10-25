@@ -171,7 +171,7 @@ export function ObservationForm({ students, classes, authorId, defaultStudentId 
       <button
         type="submit"
         disabled={!canSave || saving}
-        className="w-full py-3 bg-[#2563EB] text-white rounded-xl text-sm font-medium hover:bg-[#1D4ED8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-[#C93252] text-white rounded-xl text-sm font-medium hover:bg-[#A92842] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {saving ? t('obs.saving') : t('obs.save')}
       </button>

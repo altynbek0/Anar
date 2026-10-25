@@ -72,7 +72,7 @@ export function AnalyticsClient({
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(v: any, name: any) => [v, name === 'total' ? 'Всего' : 'Тревожных']}
               />
-              <Area type="monotone" dataKey="total" fill="#DBEAFE" stroke="#3B82F6" strokeWidth={2} dot={false} name="total" />
+              <Area type="monotone" dataKey="total" fill="#FBE4E8" stroke="#D94560" strokeWidth={2} dot={false} name="total" />
               <Line type="monotone" dataKey="alerts" stroke="#EF4444" strokeWidth={2} dot={false} name="alerts" />
             </ComposedChart>
           </ResponsiveContainer>

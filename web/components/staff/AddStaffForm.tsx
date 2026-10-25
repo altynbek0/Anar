@@ -98,7 +98,7 @@ export function AddStaffForm({ classes }: { classes: ClassItem[] }) {
         <a href="/staff" className="flex-1 py-3 text-center text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
           Отмена
         </a>
-        <button type="submit" disabled={pending} className="flex-1 py-3 bg-[#2563EB] text-white text-sm font-medium rounded-xl hover:bg-[#1D4ED8] transition-colors disabled:opacity-40">
+        <button type="submit" disabled={pending} className="flex-1 py-3 bg-[#C93252] text-white text-sm font-medium rounded-xl hover:bg-[#A92842] transition-colors disabled:opacity-40">
           {pending ? 'Создаём...' : 'Создать сотрудника'}
         </button>
       </div>

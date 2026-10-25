@@ -218,7 +218,7 @@ export function StudentBookClient({ classes, students }: { classes: ClassItem[];
               <button
                 onClick={handleDownload}
                 disabled={!!busy}
-                className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 text-sm text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-4 py-2 sm:py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 text-sm text-white bg-[#C93252] hover:bg-[#A92842] px-4 py-2 sm:py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {busy === 'download' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {t('book.download')}

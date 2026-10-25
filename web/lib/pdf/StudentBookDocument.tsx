@@ -17,7 +17,7 @@ Font.registerHyphenationCallback((word) => [word])
 
 // ── Палитра ─────────────────────────────────────────────────────────────────────
 const NAVY = '#1E3A6E'
-const BLUE = '#2563EB'
+const BLUE = '#C93252'
 const INK = '#1F2937'
 const GRAY = '#6B7280'
 const MUTED = '#9CA3AF'
@@ -25,7 +25,7 @@ const LINE = '#E5E7EB'
 const SOFT = '#F3F6FC'
 
 const CAT: Record<string, { label: string; color: string }> = {
-  academic:   { label: 'Академическое', color: '#2563EB' },
+  academic:   { label: 'Академическое', color: '#C93252' },
   behavior:   { label: 'Поведение',     color: '#CA8A04' },
   psychology: { label: 'Психология',    color: '#7C3AED' },
   sport:      { label: 'Спорт',         color: '#16A34A' },

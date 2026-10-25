@@ -117,6 +117,22 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ── Светлая палитра Anar ──────────────────────────────────────────────────
+   Акцент — гранатовый (цвет косточки на логотипе), нейтральные — тёплые серые вместо
+   холодных. Интерфейс написан на Tailwind-классах blue-*/gray-*, поэтому подменяем сами
+   шкалы: так перекрашиваются кнопки, ссылки, выделения и рамки одним местом. */
+:root {
+  --color-blue-50: #FDF2F4;  --color-blue-100: #FBE4E8; --color-blue-200: #F6C9D1;
+  --color-blue-300: #EE9FAE; --color-blue-400: #E36F85; --color-blue-500: #D94560;
+  --color-blue-600: #C93252; --color-blue-700: #A92842; --color-blue-800: #8A2238;
+  --color-blue-900: #6E1D31; --color-blue-950: #3F0F1B;
+
+  --color-gray-50: #FAFAF9;  --color-gray-100: #F5F5F4; --color-gray-200: #E7E5E4;
+  --color-gray-300: #D6D3D1; --color-gray-400: #A8A29E; --color-gray-500: #78716C;
+  --color-gray-600: #57534E; --color-gray-700: #44403C; --color-gray-800: #292524;
+  --color-gray-900: #1C1917; --color-gray-950: #0C0A09;
+}
+
 /* ── Тёмная тема ───────────────────────────────────────────────────────────
    Интерфейс написан на «жёстких» Tailwind-цветах (bg-white, text-gray-900…), поэтому
    в .dark переопределяем сами цвета палитры: серая шкала инвертируется, светлые
@@ -136,7 +152,7 @@
   --color-gray-900: oklch(0.96 0.004 260);
   --color-gray-950: oklch(0.98 0.002 260);
 
-  --color-blue-50: oklch(0.28 0.06 260);   --color-blue-100: oklch(0.33 0.08 260);
+  --color-blue-50: oklch(0.28 0.06 8);   --color-blue-100: oklch(0.33 0.08 8);
   --color-red-50: oklch(0.27 0.07 25);     --color-red-100: oklch(0.32 0.09 25);
   --color-orange-50: oklch(0.28 0.06 55);  --color-orange-100: oklch(0.33 0.08 55);
   --color-amber-50: oklch(0.28 0.06 80);   --color-amber-100: oklch(0.33 0.08 80);
@@ -151,7 +167,7 @@
   --color-pink-50: oklch(0.28 0.07 350);   --color-pink-100: oklch(0.33 0.09 350);
   --color-rose-50: oklch(0.28 0.07 10);    --color-rose-100: oklch(0.33 0.09 10);
 
-  --color-blue-600: oklch(0.72 0.14 260);  --color-blue-700: oklch(0.78 0.12 260);
+  --color-blue-600: oklch(0.72 0.14 8);  --color-blue-700: oklch(0.78 0.12 8);
   --color-red-500: oklch(0.70 0.19 25);    --color-red-600: oklch(0.74 0.17 25);   --color-red-700: oklch(0.80 0.14 25);
   --color-orange-500: oklch(0.76 0.16 55); --color-orange-600: oklch(0.78 0.15 55);--color-orange-700: oklch(0.82 0.13 55);
   --color-amber-600: oklch(0.80 0.15 80);  --color-amber-700: oklch(0.84 0.13 80);
@@ -171,9 +187,9 @@
    --color-white нужен для text-white на синих кнопках. */
 .dark .bg-white { background-color: oklch(0.2 0.012 260); }
 .dark .bg-white\/80, .dark .bg-white\/90 { background-color: oklch(0.2 0.012 260 / 0.85); }
-.dark .bg-\[\#F8F9FC\] { background-color: oklch(0.15 0.01 260); }
+.dark .bg-\[\#F7F5F3\] { background-color: oklch(0.15 0.01 260); }
 .dark .bg-\[\#F3F4F6\] { background-color: oklch(0.27 0.012 260); }
-.dark .bg-\[\#EFF6FF\] { background-color: oklch(0.28 0.06 260); }
+.dark .bg-\[\#FDF2F4\] { background-color: oklch(0.28 0.06 8); }
 .dark .text-\[\#111827\] { color: oklch(0.96 0.004 260); }
 .dark .border-\[\#111827\] { border-color: oklch(0.96 0.004 260); }
 

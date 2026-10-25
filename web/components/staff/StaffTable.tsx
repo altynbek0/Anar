@@ -122,12 +122,12 @@ export function StaffTable({ staff: initial, classes, currentUserId }: {
     <>
       {/* Role filters */}
       <div className="flex flex-wrap gap-2 mb-3">
-        <button onClick={() => setActiveRole(null)} className={cn('px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors', activeRole === null ? 'bg-[#2563EB] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300')}>
+        <button onClick={() => setActiveRole(null)} className={cn('px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors', activeRole === null ? 'bg-[#C93252] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300')}>
           Все ({staff.length})
         </button>
         {visibleRoles.map(role => (
           <button key={role} onClick={() => setActiveRole(activeRole === role ? null : role)}
-            className={cn('px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors border', activeRole === role ? 'bg-[#2563EB] text-white border-transparent' : cn(ROLE_COLORS[role], 'hover:opacity-80'))}>
+            className={cn('px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors border', activeRole === role ? 'bg-[#C93252] text-white border-transparent' : cn(ROLE_COLORS[role], 'hover:opacity-80'))}>
             {ROLE_LABELS[role]} ({staff.filter(s => s.role === role).length})
           </button>
         ))}
@@ -267,7 +267,7 @@ export function StaffTable({ staff: initial, classes, currentUserId }: {
 
             <div className="flex gap-3">
               <button onClick={() => setClassModal(null)} className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Отмена</button>
-              <button onClick={confirmClassModal} className="flex-1 py-2.5 text-sm font-medium text-white bg-[#2563EB] rounded-xl hover:bg-[#1D4ED8]">Сохранить</button>
+              <button onClick={confirmClassModal} className="flex-1 py-2.5 text-sm font-medium text-white bg-[#C93252] rounded-xl hover:bg-[#A92842]">Сохранить</button>
             </div>
           </div>
         </div>

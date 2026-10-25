@@ -87,7 +87,7 @@ export default async function StudentsPage() {
         {canAddStudent && (
           <Link
             href="/students/new"
-            className="flex items-center gap-2 bg-[#2563EB] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-sm font-medium hover:bg-[#1D4ED8] transition-colors whitespace-nowrap flex-shrink-0"
+            className="flex items-center gap-2 bg-[#C93252] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-sm font-medium hover:bg-[#A92842] transition-colors whitespace-nowrap flex-shrink-0"
           >
             <UserPlus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('stud.add')}</span>

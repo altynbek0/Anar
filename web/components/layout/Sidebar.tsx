@@ -89,7 +89,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
             <div
               className={cn(
                 'w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center',
-                logoUrl ? '' : 'bg-[#2563EB]'
+                logoUrl ? '' : 'bg-[#C93252]'
               )}
             >
               {logoUrl ? (
@@ -118,7 +118,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
           </div>
 
           <div className="min-w-0">
-            <p className="font-bold text-gray-900 text-base leading-tight group-hover/logo:text-[#2563EB] transition-colors">Anar</p>
+            <p className="font-bold text-gray-900 text-base leading-tight group-hover/logo:text-[#C93252] transition-colors">Anar</p>
             <p className="text-[11px] text-gray-400 truncate leading-tight mt-0.5">{schoolName}</p>
           </div>
         </Link>
@@ -137,7 +137,7 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
       {/* User */}
       <div className="px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#2563EB] text-white text-sm font-semibold flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-full bg-[#C93252] text-white text-sm font-semibold flex items-center justify-center flex-shrink-0">
             {initials || 'U'}
           </div>
           <div className="min-w-0">
@@ -158,11 +158,11 @@ export function Sidebar({ userName = 'Пользователь', userRoleKey = '
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all whitespace-nowrap',
                 isActive
-                  ? 'bg-[#EFF6FF] text-[#2563EB] font-medium'
+                  ? 'bg-[#FDF2F4] text-[#C93252] font-medium'
                   : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
-              <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-[#2563EB]' : 'text-gray-400')} />
+              <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-[#C93252]' : 'text-gray-400')} />
               {t(labelKey)}
             </Link>
           )
