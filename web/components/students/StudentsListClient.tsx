@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronRight, GraduationCap, Pencil, Search, Trash2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { deleteStudent, deleteClass, graduateClass, updateClass } from '@/app/(dashboard)/students/actions'
+import { deleteStudent, deleteClass, deleteClasslessStudents, graduateClass, updateClass } from '@/app/(dashboard)/students/actions'
 import { useI18n } from '@/lib/i18n/I18nProvider'
 
 interface Student {
@@ -146,6 +146,17 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
     setLoadingId(null)
   }
 
+  async function handleDeleteClassless(count: number) {
+    if (!confirm(t('stud.confirmDeleteNoClass', { count }))) return
+    setLoadingId('__none__')
+    setError(null)
+    const res = await deleteClasslessStudents()
+    if (res.error) { setError(res.error) } else {
+      setClasses((prev) => prev.filter((cls) => !cls.virtual))
+    }
+    setLoadingId(null)
+  }
+
   async function handleDeleteClass(classId: string, name: string, count: number) {
     if (!confirm(t('stud.confirmDeleteClass', { name, count }))) return
     setLoadingId(classId)
@@ -253,8 +264,9 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                       {totalAlerts > 0 ? <span className="text-sm font-semibold text-red-500">{totalAlerts}</span> : <span className="text-xs text-gray-200">—</span>}
                     </td>
                     <td className="px-4 py-3.5 sm:px-5 sm:py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      {canDelete && !cls.virtual && (
+                      {canDelete && (
                         <div className="flex items-center justify-end gap-1 sm:opacity-0 sm:group-hover/cls:opacity-100">
+                          {!cls.virtual && (<>
                           <button onClick={() => openEditModal(cls)} disabled={loadingId === cls.id} title={t('stud.editClass')} className="p-1.5 text-gray-400 hover:text-blue-500 active:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -263,7 +275,8 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
                               <GraduationCap className="w-4 h-4" />
                             </button>
                           )}
-                          <button onClick={() => handleDeleteClass(cls.id, cls.name, cls.students.length)} disabled={loadingId === cls.id} title={t('stud.deleteClass')} className="p-1.5 text-gray-400 hover:text-red-500 active:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                          </>)}
+                          <button onClick={() => cls.virtual ? handleDeleteClassless(cls.students.length) : handleDeleteClass(cls.id, cls.name, cls.students.length)} disabled={loadingId === cls.id} title={cls.virtual ? t('stud.deleteNoClass') : t('stud.deleteClass')} className="p-1.5 text-gray-400 hover:text-red-500 active:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

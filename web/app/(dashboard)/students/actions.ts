@@ -17,6 +17,23 @@ async function markDeparted(
   return res
 }
 
+// Полное удаление учеников и всех их данных. Каскадов в БД нет, поэтому чистим зависимые
+// таблицы по порядку; вызывать только с service-role клиентом после проверки прав и школы.
+async function purgeStudents(db: Db, studentIds: string[]): Promise<string | null> {
+  if (studentIds.length === 0) return null
+  const { data: obs } = await db.from('observations').select('id').in('student_id', studentIds)
+  const obsIds = (obs ?? []).map((o) => o.id)
+  if (obsIds.length > 0) {
+    const { error } = await db.from('observation_reactions').delete().in('observation_id', obsIds)
+    if (error) return error.message
+  }
+  for (const table of ['observations', 'ai_insight_versions', 'ai_insights', 'students']) {
+    const { error } = await db.from(table).delete().in(table === 'students' ? 'id' : 'student_id', studentIds)
+    if (error) return error.message
+  }
+  return null
+}
+
 export async function deleteStudent(studentId: string, departureReason: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -157,18 +174,8 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
   const { data: classStudents } = await db.from('students').select('id').eq('class_id', classId)
   const studentIds = (classStudents ?? []).map((s) => s.id)
 
-  if (studentIds.length > 0) {
-    const { data: obs } = await db.from('observations').select('id').in('student_id', studentIds)
-    const obsIds = (obs ?? []).map((o) => o.id)
-    if (obsIds.length > 0) {
-      const { error } = await db.from('observation_reactions').delete().in('observation_id', obsIds)
-      if (error) return { error: 'Не удалось удалить класс' }
-    }
-    for (const table of ['observations', 'ai_insight_versions', 'ai_insights', 'students']) {
-      const { error } = await db.from(table).delete().in(table === 'students' ? 'id' : 'student_id', studentIds)
-      if (error) return { error: 'Не удалось удалить класс' }
-    }
-  }
+  const purgeErr = await purgeStudents(db, studentIds)
+  if (purgeErr) return { error: 'Не удалось удалить класс' }
 
   // Сотрудники ссылаются на класс через users.class_id (внешний ключ без каскада)
   await db.from('users').update({ class_id: null }).eq('class_id', classId)
@@ -180,4 +187,31 @@ export async function deleteClass(classId: string): Promise<{ error?: string }> 
   revalidatePath('/')
   revalidatePath('/analytics')
   return {}
+}
+
+// Удаляет всех активных учеников без класса одним действием (группа «Без класса» в списке).
+// Выпускников (выбывшие без класса) не трогаем — это архив.
+export async function deleteClasslessStudents(): Promise<{ error?: string; deleted?: number }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Не авторизован' }
+
+  const { data: profile } = await supabase
+    .from('users').select('role, school_id').eq('id', user.id).single()
+  if (!['admin', 'deputy', 'manager'].includes(profile?.role ?? ''))
+    return { error: 'Нет прав для удаления учеников' }
+
+  const db = createAdminClient()
+  const { data: students } = await db
+    .from('students').select('id')
+    .eq('school_id', profile!.school_id).eq('status', 'active').is('class_id', null)
+  const ids = (students ?? []).map((s) => s.id)
+  if (ids.length === 0) return { deleted: 0 }
+
+  if (await purgeStudents(db, ids)) return { error: 'Не удалось удалить учеников' }
+
+  revalidatePath('/students')
+  revalidatePath('/')
+  revalidatePath('/analytics')
+  return { deleted: ids.length }
 }
