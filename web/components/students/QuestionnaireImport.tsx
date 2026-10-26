@@ -28,27 +28,38 @@ interface ParentRow   {
 
 // ── Parsers ──────────────────────────────────────────────────────────────────
 
-function parseCsvLine(line: string): string[] {
-  const result: string[] = []
+// Разбор CSV целиком, а не построчно: в ответах анкет (Google Forms) есть длинные тексты с
+// переносами строк внутри кавычек. Раньше файл резался по «\n», и каждая строка такого текста
+// становилась отдельной «записью» — отсюда ученики «креативна», «веселая и позитивная…» и классы-обрывки.
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
   let cur = '', inQ = false
-  for (let i = 0; i < line.length; i++) {
-    if (line[i] === '"') {
-      if (inQ && line[i + 1] === '"') { cur += '"'; i++ }
-      else inQ = !inQ
-    } else if (line[i] === ',' && !inQ) { result.push(cur); cur = '' }
-    else cur += line[i]
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++ }
+        else inQ = false
+      } else cur += ch
+    } else if (ch === '"') inQ = true
+    else if (ch === ',') { row.push(cur); cur = '' }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++
+      row.push(cur); cur = ''
+      rows.push(row); row = []
+    } else cur += ch
   }
-  result.push(cur)
-  return result
+  if (cur !== '' || row.length > 0) { row.push(cur); rows.push(row) }
+  return rows.filter(r => r.some(c => c.trim()))
 }
 
 function parseSheet<T>(buf: ArrayBuffer, mapper: (r: Record<string, string>) => T): T[] {
   const text = new TextDecoder('utf-8').decode(new Uint8Array(buf)).replace(/^﻿/, '')
-  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim())
-  if (lines.length < 2) return []
-  const headers = parseCsvLine(lines[0]).map(h => h.trim())
-  const raw: Record<string, string>[] = lines.slice(1).map(line => {
-    const vals = parseCsvLine(line)
+  const table = parseCsv(text)
+  if (table.length < 2) return []
+  const headers = table[0].map(h => h.trim())
+  const raw: Record<string, string>[] = table.slice(1).map(vals => {
     const obj: Record<string, string> = {}
     headers.forEach((h, i) => { obj[h] = (vals[i] ?? '').trim() })
     return obj
@@ -448,8 +459,7 @@ function PreviewTable({ initialRows, students, parents, onConfirm, onBack, loadi
 
 function detectFileType(buf: ArrayBuffer): 'teacher' | 'student' | 'parent' | 'unknown' {
   const text = new TextDecoder('utf-8').decode(new Uint8Array(buf)).replace(/^﻿/, '')
-  const firstLine = text.replace(/\r\n/g, '\n').split('\n')[0] ?? ''
-  const headers = parseCsvLine(firstLine).map(h => h.trim().toLowerCase())
+  const headers = (parseCsv(text)[0] ?? []).map(h => h.trim().toLowerCase())
   const has = (substr: string) => headers.some(h => h.includes(substr))
 
   if (has('дисциплинирован') || has('тип класса') || has('направлении вы видите')) return 'teacher'
