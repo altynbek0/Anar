@@ -117,7 +117,7 @@ export function AddStudentForm({ classes }: { classes: ClassItem[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 py-3 bg-[#C93252] text-white text-sm font-medium rounded-xl hover:bg-[#A92842] transition-colors disabled:opacity-40"
+          className="flex-1 py-3 bg-[#2563EB] text-white text-sm font-medium rounded-xl hover:bg-[#1D4ED8] transition-colors disabled:opacity-40"
         >
           {pending ? 'Создаём...' : 'Создать ученика'}
         </button>

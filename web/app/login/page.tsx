@@ -46,7 +46,7 @@ export default function LoginPage() {
       {/* ── LEFT: hero panel ── */}
       <div
         className="hidden lg:flex lg:w-[55%] relative overflow-hidden flex-col justify-between p-14"
-        style={{ background: 'linear-gradient(145deg, #0B0A0A 0%, #1A0B10 50%, #0A0708 100%)' }}
+        style={{ background: 'linear-gradient(145deg, #06091A 0%, #0C1535 50%, #080D20 100%)' }}
       >
         {/* Ambient glow blobs */}
         <div
@@ -55,7 +55,7 @@ export default function LoginPage() {
             top: '-18%', left: '-12%',
             width: 700, height: 700,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(201,50,82,0.22) 0%, transparent 65%)',
+            background: 'radial-gradient(circle, rgba(59,130,246,0.22) 0%, transparent 65%)',
           }}
         />
         <div
@@ -103,9 +103,9 @@ export default function LoginPage() {
           <div
             className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full mb-7 text-xs font-medium"
             style={{
-              background: 'rgba(201,50,82,0.15)',
-              border: '1px solid rgba(201,50,82,0.30)',
-              color: '#F3A6B5',
+              background: 'rgba(59,130,246,0.15)',
+              border: '1px solid rgba(59,130,246,0.30)',
+              color: '#93C5FD',
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
@@ -117,7 +117,7 @@ export default function LoginPage() {
             Умное управление<br />
             <span
               style={{
-                background: 'linear-gradient(130deg, #E36F85 0%, #A78BFA 60%, #818CF8 100%)',
+                background: 'linear-gradient(130deg, #60A5FA 0%, #A78BFA 60%, #818CF8 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}
@@ -135,7 +135,7 @@ export default function LoginPage() {
               <div key={title} className="flex items-start gap-4">
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: 'rgba(201,50,82,0.15)', border: '1px solid rgba(201,50,82,0.25)' }}
+                  style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.25)' }}
                 >
                   <Icon className="w-4 h-4 text-blue-400" />
                 </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── RIGHT: form panel ── */}
-      <div className="flex-1 flex items-center justify-center px-8 py-12 bg-[#F7F5F3]">
+      <div className="flex-1 flex items-center justify-center px-8 py-12 bg-[#F8F9FC]">
         <div className="w-full max-w-[360px]">
           {/* Header */}
           <div className="mb-8">
@@ -222,9 +222,9 @@ export default function LoginPage() {
               className="w-full py-[11px] rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: pending
-                  ? '#C93252'
-                  : 'linear-gradient(135deg, #C93252 0%, #A92842 100%)',
-                boxShadow: '0 4px 24px rgba(169,40,66,0.30), 0 1px 3px rgba(169,40,66,0.20)',
+                  ? '#2563EB'
+                  : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                boxShadow: '0 4px 24px rgba(37,99,235,0.30), 0 1px 3px rgba(37,99,235,0.20)',
               }}
             >
               {pending ? (

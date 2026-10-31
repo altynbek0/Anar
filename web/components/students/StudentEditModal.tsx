@@ -301,7 +301,7 @@ export function StudentEditModal({ student, classes }: Props) {
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 text-sm font-medium bg-[#C93252] text-white rounded-xl hover:bg-[#A92842] disabled:opacity-60 transition-colors"
+                className="flex-1 px-4 py-2.5 text-sm font-medium bg-[#2563EB] text-white rounded-xl hover:bg-[#1D4ED8] disabled:opacity-60 transition-colors"
               >
                 {loading ? 'Сохранение...' : 'Сохранить'}
               </button>

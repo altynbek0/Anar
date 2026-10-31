@@ -63,7 +63,7 @@ export function MobileShell({
           >
             <Menu className="w-[18px] h-[18px]" />
           </button>
-          <Link href="/" className="font-bold text-gray-900 text-[15px] hover:text-[#C93252] transition-colors">Anar</Link>
+          <Link href="/" className="font-bold text-gray-900 text-[15px] hover:text-[#2563EB] transition-colors">Anar</Link>
         </div>
 
         <main className="flex-1 overflow-auto pb-20">

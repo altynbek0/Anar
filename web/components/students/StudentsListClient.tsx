@@ -469,7 +469,7 @@ export function StudentsListClient({ classList, canDelete = false, noRecentObsId
               <button
                 onClick={confirmEdit}
                 disabled={!editGrade || !editLetter.trim() || loadingId === editModal.classId}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-[#C93252] hover:bg-[#A92842] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition-colors"
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition-colors"
               >
                 {loadingId === editModal.classId ? t('stud.saving') : t('stud.save')}
               </button>

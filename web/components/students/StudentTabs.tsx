@@ -56,7 +56,7 @@ export function StudentTabs({ student, observations, aiSummaries, versions = [],
               className={cn(
                 'px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
                 active === tab
-                  ? 'border-[#C93252] text-[#C93252]'
+                  ? 'border-[#2563EB] text-[#2563EB]'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               )}
             >

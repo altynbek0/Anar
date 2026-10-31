@@ -152,7 +152,7 @@ export function ExcelImportPanel() {
           <button
             onClick={handleImport}
             disabled={loading}
-            className="w-full py-2.5 bg-[#C93252] text-white text-sm font-medium rounded-xl hover:bg-[#A92842] transition-colors disabled:opacity-40"
+            className="w-full py-2.5 bg-[#2563EB] text-white text-sm font-medium rounded-xl hover:bg-[#1D4ED8] transition-colors disabled:opacity-40"
           >
             {loading ? 'Импортируем...' : `Импортировать ${rows.length} учеников`}
           </button>
