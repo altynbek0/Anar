@@ -71,9 +71,9 @@ const styles = StyleSheet.create({
   schoolLogo: { width: 30, height: 30, borderRadius: 15, objectFit: 'cover' },
   schoolLogoPh: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#E5E5E5' },
   schoolNameTop: { fontSize: 11, fontWeight: 'bold', color: INK },
-  anarLogo: { width: 26, height: 26 },
-  anarBrand: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  anarBrandText: { fontSize: 15, fontWeight: 'bold', color: INK },
+  okaLogo: { width: 26, height: 26 },
+  okaBrand: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  okaBrandText: { fontSize: 15, fontWeight: 'bold', color: INK },
   deco: { position: 'absolute', top: 96, right: -46, width: 320, height: 364 },
   leftEdge: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, backgroundColor: '#0B0B0D' },
 
@@ -123,7 +123,7 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 }
 
-// Декоративные ленты Anar — готовая картинка с мягкой тенью (react-pdf сам тень не умеет)
+// Декоративные ленты Oka — готовая картинка с мягкой тенью (react-pdf сам тень не умеет)
 function DecoBars() {
   return <Image src="/pdf/deco-bars.png" style={styles.deco} />
 }
@@ -135,9 +135,9 @@ function CoverHeader({ data }: { data: BookData }) {
         {data.schoolLogoUrl ? <Image src={data.schoolLogoUrl} style={styles.schoolLogo} /> : <View style={styles.schoolLogoPh} />}
         <Text style={styles.schoolNameTop}>{data.schoolName || 'Название школы'}</Text>
       </View>
-      <View style={styles.anarBrand}>
-        <Image src="/pdf/anar-logo.png" style={styles.anarLogo} />
-        <Text style={styles.anarBrandText}>Anar</Text>
+      <View style={styles.okaBrand}>
+        <Image src="/pdf/oka-logo.png" style={styles.okaLogo} />
+        <Text style={styles.okaBrandText}>Oka</Text>
       </View>
     </View>
   )
@@ -146,7 +146,7 @@ function CoverHeader({ data }: { data: BookData }) {
 function Header({ title }: { title: string }) {
   return (
     <View style={styles.header} fixed>
-      <Text style={styles.brand}>Anar</Text>
+      <Text style={styles.brand}>Oka</Text>
       <Text style={styles.headerTitle}>{title}</Text>
     </View>
   )
@@ -155,7 +155,7 @@ function Header({ title }: { title: string }) {
 function Footer() {
   return (
     <View style={styles.footer} fixed>
-      <Text style={styles.footerText}>Anar · Платформа аналитики ученика</Text>
+      <Text style={styles.footerText}>Oka · Платформа аналитики ученика</Text>
       <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
     </View>
   )
@@ -184,7 +184,7 @@ export function StudentBookDocument({ data }: { data: BookData }) {
   const maxCount = Math.max(1, ...data.categoryCounts.map(c => c.count))
 
   return (
-    <Document title={`Книга ученика — ${data.fullName}`} author="Anar">
+    <Document title={`Книга ученика — ${data.fullName}`} author="Oka">
       {/* ── Обложка ── */}
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.leftEdge} fixed />

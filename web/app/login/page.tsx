@@ -92,9 +92,9 @@ export default function LoginPage() {
             className="w-9 h-9 rounded-xl flex items-center justify-center border"
             style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.14)' }}
           >
-            <Image src="/icon.png" width={20} height={20} alt="Anar" />
+            <Image src="/icon.png" width={20} height={20} alt="Oka" />
           </div>
-          <span className="text-white font-semibold text-[15px] tracking-tight">Anar</span>
+          <span className="text-white font-semibold text-[15px] tracking-tight">Oka</span>
         </div>
 
         {/* ── Middle: headline + stats ── */}
@@ -156,7 +156,7 @@ export default function LoginPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex justify-center mb-6">
-              <Image src="/icon.png" width={56} height={56} alt="Anar" />
+              <Image src="/icon.png" width={56} height={56} alt="Oka" />
             </div>
             <h2 className="text-[26px] font-bold text-gray-900 tracking-tight mb-2 text-center">
               Добро пожаловать
@@ -250,7 +250,7 @@ export default function LoginPage() {
               Нужна помощь? Обратитесь к администратору
             </p>
             <p className="text-center text-xs text-gray-300">
-              © {new Date().getFullYear()} Anar · Все права защищены
+              © {new Date().getFullYear()} Oka · Все права защищены
             </p>
           </div>
         </div>

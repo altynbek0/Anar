@@ -11,25 +11,25 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://strideai.it.com'),
   title: {
-    default: 'Anar — платформа аналитики и профиля ученика',
-    template: '%s · Anar',
+    default: 'Oka — платформа аналитики и профиля ученика',
+    template: '%s · Oka',
   },
   description:
-    'Anar — AI-платформа для школ: цифровой профиль ученика, наблюдения учителей, аналитика и книга ученика.',
-  applicationName: 'Anar',
-  keywords: ['Anar', 'анар', 'профиль ученика', 'школьная аналитика', 'книга ученика'],
+    'Oka — AI-платформа для школ: цифровой профиль ученика, наблюдения учителей, аналитика и книга ученика.',
+  applicationName: 'Oka',
+  keywords: ['Oka', 'ока', 'профиль ученика', 'школьная аналитика', 'книга ученика'],
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
     url: 'https://strideai.it.com',
-    siteName: 'Anar',
-    title: 'Anar — платформа аналитики и профиля ученика',
+    siteName: 'Oka',
+    title: 'Oka — платформа аналитики и профиля ученика',
     description: 'AI-платформа для школ: цифровой профиль ученика, наблюдения учителей, аналитика.',
     locale: 'ru_RU',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Anar — платформа аналитики ученика',
+    title: 'Oka — платформа аналитики ученика',
     description: 'AI-платформа для школ: профиль ученика, наблюдения, аналитика.',
   },
 }
