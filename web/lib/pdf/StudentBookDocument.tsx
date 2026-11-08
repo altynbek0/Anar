@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   okaLogo: { width: 26, height: 26 },
   okaBrand: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   okaBrandText: { fontSize: 15, fontWeight: 'bold', color: INK },
-  deco: { position: 'absolute', top: 96, right: -46, width: 320, height: 364 },
+  deco: { position: 'absolute', top: 96, right: -46, width: 320, height: 374 },
   leftEdge: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, backgroundColor: '#0B0B0D' },
 
   tagline: { fontSize: 12, color: '#4B5563', marginTop: 40 },
